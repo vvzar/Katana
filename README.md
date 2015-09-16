@@ -22,6 +22,7 @@ Katana is a fork of [PocketMine-MP](http://github.com/PocketMine/PocketMine-MP) 
 - Katana performs reduced physics calculations.
 - Katana does not tick mob AIs.
 - Katana does not support packet channels.
+- Katana forces biome colors to be green. :rainbow:
 
 ### Design Philosophy
 This server software was created and is maintained by William Teder and Ethan Kuehnel of Hydreon Corporation for the Lifeboat Server Network. We recognize that the functionality that is needed to run large minigame networks differs from that needed to run more vanilla servers. We hope that by removing unused features we can simplify core functions to make them easier to understand and maintain, while reducing overhead to improve performance. This is not software for everyone, this is software for our intended use. Hopefully you find it useful too.

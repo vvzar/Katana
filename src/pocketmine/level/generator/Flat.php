@@ -44,8 +44,6 @@ class Flat extends Generator{
 	private $chunk;
 	/** @var Random */
 	private $random;
-	/** @var Populator[] */
-	private $populators = [];
 	private $structure, $chunks, $options, $floorLevel, $preset;
 
 	public function getSettings(){
@@ -95,15 +93,10 @@ class Flat extends Generator{
 
 		$this->chunk = clone $this->level->getChunk($chunkX, $chunkZ);
 		$this->chunk->setGenerated();
-		$c = Biome::getBiome($biome)->getColor();
-		$R = $c >> 16;
-		$G = ($c >> 8) & 0xff;
-		$B = $c & 0xff;
 
 		for($Z = 0; $Z < 16; ++$Z){
 			for($X = 0; $X < 16; ++$X){
 				$this->chunk->setBiomeId($X, $Z, $biome);
-				$this->chunk->setBiomeColor($X, $Z, $R, $G, $B);
 				for($y = 0; $y < 128; ++$y){
 					$this->chunk->setBlock($X, $y, $Z, ...$this->structure[$y]);
 				}
@@ -158,10 +151,6 @@ class Flat extends Generator{
 
 	public function populateChunk($chunkX, $chunkZ){
 		$this->random->setSeed(0xdeadbeef ^ ($chunkX << 8) ^ $chunkZ ^ $this->level->getSeed());
-		foreach($this->populators as $populator){
-			$populator->populate($this->level, $chunkX, $chunkZ, $this->random);
-		}
-
 	}
 
 	public function getSpawn(){

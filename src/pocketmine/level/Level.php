@@ -2141,17 +2141,6 @@ class Level implements ChunkManager, Metadatable{
 	/**
 	 * @param int $x
 	 * @param int $z
-	 * @param int $R
-	 * @param int $G
-	 * @param int $B
-	 */
-	public function setBiomeColor($x, $z, $R, $G, $B){
-		$this->getChunk($x >> 4, $z >> 4, true)->setBiomeColor($x & 0x0f, $z & 0x0f, $R, $G, $B);
-	}
-
-	/**
-	 * @param int $x
-	 * @param int $z
 	 * @param int $value
 	 */
 	public function setHeightMap($x, $z, $value){

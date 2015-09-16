@@ -228,15 +228,6 @@ interface FullChunk{
 
 	public function getBlockLightColumn($x, $z);
 
-	/**
-	 * @param int $x 0-15
-	 * @param int $z 0-15
-	 * @param int $R 0-255
-	 * @param int $G 0-255
-	 * @param int $B 0-255
-	 */
-	public function setBiomeColor($x, $z, $R, $G, $B);
-
 	public function isLightPopulated();
 
 	public function setLightPopulated($value = 1);

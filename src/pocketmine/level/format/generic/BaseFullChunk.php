@@ -222,11 +222,6 @@ abstract class BaseFullChunk implements FullChunk{
 		return [$color >> 16, ($color >> 8) & 0xFF, $color & 0xFF];
 	}
 
-	public function setBiomeColor($x, $z, $R, $G, $B){
-		$this->hasChanged = true;
-		$this->biomeColors[($z << 4) + $x] = ($this->biomeColors[($z << 4) + $x] & 0xFF000000) | (($R & 0xFF) << 16) | (($G & 0xFF) << 8) | ($B & 0xFF);
-	}
-
 	public function getHeightMap($x, $z){
 		return $this->heightMap[($z << 4) + $x];
 	}
