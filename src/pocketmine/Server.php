@@ -1467,7 +1467,14 @@ class Server{
 		}
 		$this->config = new Config($this->dataPath . "pocketmine.yml", Config::YAML, []);
 
-		$this->logger->info("Loading server properties...");
+		$this->logger->debug("Loading katana.yml...");
+		if(!file_exists($this->dataPath . "katana.yml")){
+			$content = file_get_contents($this->filePath . "src/pocketmine/resources/katana.yml");
+			@file_put_contents($this->dataPath . "katana.yml", $content);
+		}
+		$this->config = new Config($this->dataPath . "katana.yml", Config::YAML, []);
+
+		$this->logger->debug("Loading server properties...");
 		$this->properties = new Config($this->dataPath . "server.properties", Config::PROPERTIES, [
 			"motd" => "Minecraft: PE Server",
 			"server-port" => 19132,
