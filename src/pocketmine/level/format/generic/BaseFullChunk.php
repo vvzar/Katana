@@ -25,7 +25,6 @@ use pocketmine\block\Block;
 use pocketmine\entity\Entity;
 use pocketmine\level\format\FullChunk;
 use pocketmine\level\format\LevelProvider;
-use pocketmine\level\generator\biome\Biome;
 use pocketmine\level\Level;
 use pocketmine\nbt\tag\Compound;
 use pocketmine\Player;
@@ -111,21 +110,6 @@ abstract class BaseFullChunk implements FullChunk{
 
 		$this->NBTtiles = $tiles;
 		$this->NBTentities = $entities;
-	}
-
-	protected function checkOldBiomes($data){
-		if(strlen($data) !== 256){
-			return;
-		}
-
-		for($x = 0; $x < 16; ++$x){
-			for($z = 0; $z < 16; ++$z){
-				$biome = Biome::getBiome(ord($data{($z << 4) + $x}));
-				$this->setBiomeId($x, $z, $biome->getId());
-				$c = $biome->getColor();
-				$this->setBiomeColor($x, $z, $c >> 16, ($c >> 8) & 0xff, $c & 0xff);
-			}
-		}
 	}
 
 	public function initChunk(){

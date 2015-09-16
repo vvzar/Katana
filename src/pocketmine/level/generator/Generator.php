@@ -26,7 +26,6 @@ namespace pocketmine\level\generator;
 
 use pocketmine\level\ChunkManager;
 use pocketmine\level\generator\noise\Noise;
-use pocketmine\level\generator\normal\Normal;
 use pocketmine\utils\Random;
 
 abstract class Generator{
@@ -59,7 +58,7 @@ abstract class Generator{
 			return Generator::$list[$name];
 		}
 
-		return Normal::class;
+		return Flat::class;
 	}
 
 	public static function getGeneratorName($class){

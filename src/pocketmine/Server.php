@@ -60,14 +60,10 @@ use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\Item;
 use pocketmine\lang\BaseLang;
 use pocketmine\level\format\anvil\Anvil;
-use pocketmine\level\format\leveldb\LevelDB;
 use pocketmine\level\format\LevelProviderManager;
 use pocketmine\level\format\mcregion\McRegion;
-use pocketmine\level\generator\biome\Biome;
 use pocketmine\level\generator\Flat;
 use pocketmine\level\generator\Generator;
-use pocketmine\level\generator\hell\Nether;
-use pocketmine\level\generator\normal\Normal;
 use pocketmine\level\Level;
 use pocketmine\metadata\EntityMetadataStore;
 use pocketmine\metadata\LevelMetadataStore;
@@ -1608,7 +1604,6 @@ class Server{
 		InventoryType::init();
 		Block::init();
 		Item::init();
-		Biome::init();
 		Effect::init();
 		Enchantment::init();
 		Attribute::init();
@@ -1638,17 +1633,8 @@ class Server{
 
 		LevelProviderManager::addProvider($this, Anvil::class);
 		LevelProviderManager::addProvider($this, McRegion::class);
-		if(extension_loaded("leveldb")){
-			$this->logger->debug($this->getLanguage()->translateString("pocketmine.debug.enable"));
-			LevelProviderManager::addProvider($this, LevelDB::class);
-		}
-
 
 		Generator::addGenerator(Flat::class, "flat");
-		Generator::addGenerator(Normal::class, "normal");
-		Generator::addGenerator(Normal::class, "default");
-		Generator::addGenerator(Nether::class, "hell");
-		Generator::addGenerator(Nether::class, "nether");
 
 		foreach((array) $this->getProperty("worlds", []) as $name => $worldSetting){
 			if($this->loadLevel($name) === false){

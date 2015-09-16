@@ -109,7 +109,7 @@ class Chunk extends BaseChunk{
 		parent::__construct($level, (int) $this->nbt["xPos"], (int) $this->nbt["zPos"], $sections, $this->nbt->BiomeColors->getValue(), $this->nbt->HeightMap->getValue(), $this->nbt->Entities->getValue(), $this->nbt->TileEntities->getValue(), $extraData);
 
 		if(isset($this->nbt->Biomes)){
-			$this->checkOldBiomes($this->nbt->Biomes->getValue());
+//			$this->checkOldBiomes($this->nbt->Biomes->getValue());
 			unset($this->nbt->Biomes);
 		}
 

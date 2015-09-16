@@ -32,7 +32,6 @@ use pocketmine\block\RedstoneOre;
 use pocketmine\item\Item;
 use pocketmine\level\ChunkManager;
 use pocketmine\level\format\FullChunk;
-use pocketmine\level\generator\biome\Biome;
 use pocketmine\level\generator\populator\Ore;
 use pocketmine\level\generator\populator\Populator;
 use pocketmine\math\Vector3;
@@ -62,21 +61,6 @@ class Flat extends Generator{
 		//$this->preset = "2;7,59x1,3x3,2;1;spawn(radius=10 block=89),decoration(treecount=80 grasscount=45)";
 		$this->options = $options;
 		$this->chunk = null;
-
-		if(isset($this->options["decoration"])){
-			$ores = new Ore();
-			$ores->setOreTypes([
-				new object\OreType(new CoalOre(), 20, 16, 0, 128),
-				new object\OreType(New IronOre(), 20, 8, 0, 64),
-				new object\OreType(new RedstoneOre(), 8, 7, 0, 16),
-				new object\OreType(new LapisOre(), 1, 6, 0, 32),
-				new object\OreType(new GoldOre(), 2, 8, 0, 32),
-				new object\OreType(new DiamondOre(), 1, 7, 0, 16),
-				new object\OreType(new Dirt(), 20, 32, 0, 128),
-				new object\OreType(new Gravel(), 10, 16, 0, 128),
-			]);
-			$this->populators[] = $ores;
-		}
 
 		/*if(isset($this->options["mineshaft"])){
 			$this->populators[] = new MineshaftPopulator(isset($this->options["mineshaft"]["chance"]) ? floatval($this->options["mineshaft"]["chance"]) : 0.01);
