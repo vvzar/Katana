@@ -1,55 +1,27 @@
-# ![PocketMine-MP](http://cdn.pocketmine.net/img/PocketMine-MP-h.png)
+# Katana (刀)
+Katana is a fork of [PocketMine-MP](http://github.com/PocketMine/PocketMine-MP) designed for large-scale server networks. It focuses on providing the best possible performance through simplicity and only features essential to running a network.
 
+### Features
+- **Powerful chunk caching and processing system.**
+    - Chunks are only encoded to be sent to the client once, freeing up many compute cycles
+    - The results of chunk encoding are stored to and loaded from a disk cache or RAM
+    - Lightweight process for sending chunks is easy to modify to fit your server's needs
+- **Revamped console.**
+    - Verbosity only when necessary
+    - Colored and formatted console messages greatly improve readability
+- **Production ready.**
+    - Ability to disable all logging on player game servers reduces disk I/O
+    - Future: Implement auto-updating system to make managing large deployments easy
+    - Katana can redirect players when no slots are available or the server is lagging
 
-	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU Lesser General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+### Warnings & Intentional Incompatibility
+- Katana does not support leveldb.
+- Katana does not use PocketMine's auto-updating or stats tracking systems.
+- Katana will only generate empty chunks for regions of the world that are not set.
+- Katana's default caching systems do not allow for worlds that are changed dynamically and saved (e.g. survival or player creative build worlds)
+- Katana performs reduced physics calculations.
+- Katana does not tick mob AIs.
+- Katana does not support packet channels.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU Lesser General Public License for more details.
-
-	You should have received a copy of the GNU Lesser General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
-__PocketMine-MP is a free, open-source software that creates Minecraft: Pocket Edition servers and allows extending its functionalities__
-
-### [Homepage](http://www.pocketmine.net/)
-
-### [Forums](http://forums.pocketmine.net/)
-
-### [Documentation](http://pocketmine-mp.readthedocs.org/)
-
-### [Plugin Repository](http://plugins.pocketmine.net/)
-
-<!--## [FAQ: Frequently Asked Questions](https://github.com/PocketMine/PocketMine-MP/wiki/Frequently-Asked-Questions)-->
-
-### [Official Jenkins server](http://jenkins.pocketmine.net/)
-
-### API Documentation
- * [Official Doxygen-generated documentation](http://docs.pocketmine.net/)
- * [Latest Doxygen generated from development](http://jenkins.pocketmine.net/job/PocketMine-MP-doc/doxygen/)
-
-### [Twitter @PocketMine](https://twitter.com/PocketMine)
-
-### IRC Chat #pocketmine (or #mcpedevs) @ irc.freenode.net
-[#pocketmine + #mcpedevs channel WebIRC](http://webchat.freenode.net/?channels=pocketmine,mcpedevs)
-
-### Want to contribute?
-* Check the [Contributing Guidelines](CONTRIBUTING.md)
-
-
-## Third-party Libraries/Protocols Used
-* __[PHP Sockets](http://php.net/manual/en/book.sockets.php)__
-* __[PHP SQLite3](http://php.net/manual/en/book.sqlite3.php)__
-* __[PHP BCMath](http://php.net/manual/en/book.bc.php)__
-* __[PHP pthreads](http://pthreads.org/)__ by _[krakjoe](https://github.com/krakjoe)_: Threading for PHP - Share Nothing, Do Everything.
-* __[PHP YAML](https://code.google.com/p/php-yaml/)__ by _Bryan Davis_: The Yaml PHP Extension provides a wrapper to the LibYAML library.
-* __[LibYAML](http://pyyaml.org/wiki/LibYAML)__ by _Kirill Simonov_: A YAML 1.1 parser and emitter written in C.
-* __[cURL](http://curl.haxx.se/)__: cURL is a command line tool for transferring data with URL syntax
-* __[Zlib](http://www.zlib.net/)__: A Massively Spiffy Yet Delicately Unobtrusive Compression Library
-* __[Source RCON Protocol](https://developer.valvesoftware.com/wiki/Source_RCON_Protocol)__
-* __[UT3 Query Protocol](http://wiki.unrealadmin.org/UT3_query_protocol)__
+### Design Philosophy
+This server software was created and is maintained by William Teder and Ethan Kuehnel of Hydreon Corporation for the Lifeboat Server Network. We recognize that the functionality that is needed to run large minigame networks differs from that needed to run more vanilla servers. We hope that by removing unused features we can simplify core functions to make them easier to understand and maintain, while reducing overhead to improve performance. This is not software for everyone, this is software for our intended use. Hopefully you find it useful too.
