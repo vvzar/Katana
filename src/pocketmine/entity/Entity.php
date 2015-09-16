@@ -816,8 +816,6 @@ abstract class Entity extends Location implements Metadatable{
 
 		$hasUpdate = false;
 
-		$this->checkBlockCollision();
-
 		if($this->y <= -16 and $this->isAlive()){
 			$ev = new EntityDamageEvent($this, EntityDamageEvent::CAUSE_VOID, 10);
 			$this->attack($ev->getFinalDamage(), $ev);
@@ -1308,23 +1306,6 @@ abstract class Entity extends Location implements Metadatable{
 		}
 
 		return $this->blocksAround;
-	}
-
-	protected function checkBlockCollision(){
-		$vector = new Vector3(0, 0, 0);
-
-		foreach($this->getBlocksAround() as $block){
-			$block->onEntityCollide($this);
-			$block->addVelocityToEntity($this, $vector);
-		}
-
-		if($vector->lengthSquared() > 0){
-			$vector = $vector->normalize();
-			$d = 0.014;
-			$this->motionX += $vector->x * $d;
-			$this->motionY += $vector->y * $d;
-			$this->motionZ += $vector->z * $d;
-		}
 	}
 
 	public function setPositionAndRotation(Vector3 $pos, $yaw, $pitch){
