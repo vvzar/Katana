@@ -1137,8 +1137,6 @@ class Server{
 
 		$this->getPluginManager()->callEvent(new LevelLoadEvent($level));
 
-		$this->getLogger()->notice($this->getLanguage()->translateString("pocketmine.level.backgroundGeneration", [$name]));
-
 		$centerX = $level->getSpawnLocation()->getX() >> 4;
 		$centerZ = $level->getSpawnLocation()->getZ() >> 4;
 
@@ -1490,7 +1488,6 @@ class Server{
 			"hardcore" => false,
 			"pvp" => true,
 			"difficulty" => 1,
-			"generator-settings" => "0;0;0",
 			"level-name" => "world",
 			"level-seed" => "",
 			"level-type" => "FLAT",

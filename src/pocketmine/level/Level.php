@@ -196,12 +196,6 @@ class Level implements ChunkManager, Metadatable{
 	private $chunkSendQueue = [];
 	private $chunkSendTasks = [];
 
-	private $chunkPopulationQueue = [];
-	private $chunkPopulationLock = [];
-	private $chunkGenerationQueue = [];
-	private $chunkGenerationQueueSize = 8;
-	private $chunkPopulationQueueSize = 2;
-
 	private $autoSave = true;
 
 	/** @var BlockMetadataStore */
@@ -343,7 +337,6 @@ class Level implements ChunkManager, Metadatable{
 
 		$this->chunkTickRadius = min($this->server->getViewDistance(), max(1, (int) $this->server->getProperty("chunk-ticking.tick-radius", 4)));
 		$this->chunksPerTick = (int) $this->server->getProperty("chunk-ticking.per-tick", 40);
-		$this->chunkGenerationQueueSize = (int) $this->server->getProperty("chunk-generation.queue-size", 8);
 		$this->chunkPopulationQueueSize = (int) $this->server->getProperty("chunk-generation.population-queue-size", 2);
 		$this->chunkTickList = [];
 		$this->clearChunksOnTick = (bool) $this->server->getProperty("chunk-ticking.clear-tick-list", true);
@@ -637,7 +630,6 @@ class Level implements ChunkManager, Metadatable{
 	 * @return bool
 	 */
 	public function doTick($currentTick){
-
 		$this->timings->doTick->startTiming();
 
 		$this->checkTime();
@@ -2153,38 +2145,6 @@ class Level implements ChunkManager, Metadatable{
 		return $this->getChunk($x, $z, $create);
 	}
 
-	public function generateChunkCallback($x, $z, FullChunk $chunk){
-		Timings::$generationCallbackTimer->startTiming();
-		if(isset($this->chunkPopulationQueue[$index = Level::chunkHash($x, $z)])){
-			$oldChunk = $this->getChunk($x, $z, false);
-			for($xx = -1; $xx <= 1; ++$xx){
-				for($zz = -1; $zz <= 1; ++$zz){
-					unset($this->chunkPopulationLock[Level::chunkHash($x + $xx, $z + $zz)]);
-				}
-			}
-			unset($this->chunkPopulationQueue[$index]);
-			$chunk->setProvider($this->provider);
-			$this->setChunk($x, $z, $chunk, false);
-			$chunk = $this->getChunk($x, $z, false);
-			if($chunk !== null and ($oldChunk === null or $oldChunk->isPopulated() === false) and $chunk->isPopulated() and $chunk->getProvider() !== null){
-				$this->server->getPluginManager()->callEvent(new ChunkPopulateEvent($chunk));
-
-				foreach($this->getChunkLoaders($x, $z) as $loader){
-					$loader->onChunkPopulated($chunk);
-				}
-			}
-		}elseif(isset($this->chunkGenerationQueue[$index]) or isset($this->chunkPopulationLock[$index])){
-			unset($this->chunkGenerationQueue[$index]);
-			unset($this->chunkPopulationLock[$index]);
-			$chunk->setProvider($this->provider);
-			$this->setChunk($x, $z, $chunk, false);
-		}else{
-			$chunk->setProvider($this->provider);
-			$this->setChunk($x, $z, $chunk, false);
-		}
-		Timings::$generationCallbackTimer->stopTiming();
-	}
-
 	/**
 	 * @param int       $chunkX
 	 * @param int       $chunkZ
@@ -2736,61 +2696,13 @@ class Level implements ChunkManager, Metadatable{
 		$this->provider->setSeed($seed);
 	}
 
-
-	public function populateChunk($x, $z, $force = false){
-		if(isset($this->chunkPopulationQueue[$index = Level::chunkHash($x, $z)]) or (count($this->chunkPopulationQueue) >= $this->chunkPopulationQueueSize and !$force)){
-			return false;
-		}
-
-		$chunk = $this->getChunk($x, $z, true);
-		if(!$chunk->isPopulated()){
-			Timings::$populationTimer->startTiming();
-			$populate = true;
-			for($xx = -1; $xx <= 1; ++$xx){
-				for($zz = -1; $zz <= 1; ++$zz){
-					if(isset($this->chunkPopulationLock[Level::chunkHash($x + $xx, $z + $zz)])){
-						$populate = false;
-						break;
-					}
-				}
-			}
-
-            if($populate) {
-
-            }
-
-//			if($populate){
-//				if(!isset($this->chunkPopulationQueue[$index])){
-//					$this->chunkPopulationQueue[$index] = true;
-//					for($xx = -1; $xx <= 1; ++$xx){
-//						for($zz = -1; $zz <= 1; ++$zz){
-//							$this->chunkPopulationLock[Level::chunkHash($x + $xx, $z + $zz)] = true;
-//						}
-//					}
-//					$task = new PopulationTask($this, $chunk);
-//					$this->server->getScheduler()->scheduleAsyncTask($task);
-//				}
-//			}
-
-			Timings::$populationTimer->stopTiming();
-			return false;
-		}
-
+	public function generateChunk($x, $z, $force = false) {
+		$this->setChunk($x, $z, Chunk::getEmptyChunk($x, $z, $this->provider));
 		return true;
 	}
 
-	public function generateChunk($x, $z, $force = false){
-		if(count($this->chunkGenerationQueue) >= $this->chunkGenerationQueueSize and !$force){
-			return;
-		}
-
-		if(!isset($this->chunkGenerationQueue[$index = Level::chunkHash($x, $z)])){
-			Timings::$generationTimer->startTiming();
-			$this->chunkGenerationQueue[$index] = true;
-			$task = new GenerationTask($this, $this->getChunk($x, $z, true));
-			$this->server->getScheduler()->scheduleAsyncTask($task);
-			Timings::$generationTimer->stopTiming();
-		}
+	public function populateChunk($x, $z, $force = false){
+		return true;
 	}
 
 	public function regenerateChunk($x, $z){
