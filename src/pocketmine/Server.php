@@ -62,8 +62,6 @@ use pocketmine\lang\BaseLang;
 use pocketmine\level\format\anvil\Anvil;
 use pocketmine\level\format\LevelProviderManager;
 use pocketmine\level\format\mcregion\McRegion;
-use pocketmine\level\generator\Flat;
-use pocketmine\level\generator\Generator;
 use pocketmine\level\Level;
 use pocketmine\metadata\EntityMetadataStore;
 use pocketmine\metadata\LevelMetadataStore;
@@ -1101,25 +1099,16 @@ class Server{
 	 *
 	 * @param string $name
 	 * @param int    $seed
-	 * @param string $generator Class name that extends pocketmine\level\generator\Noise
 	 * @param array  $options
 	 *
 	 * @return bool
 	 */
-	public function generateLevel($name, $seed = null, $generator = null, $options = []){
+	public function generateLevel($name, $seed = null, $options = []){
 		if(trim($name) === "" or $this->isLevelGenerated($name)){
 			return false;
 		}
 
 		$seed = $seed === null ? Binary::readInt(@Utils::getRandomBytes(4, false)) : (int) $seed;
-
-		if(!isset($options["preset"])){
-			$options["preset"] = $this->getConfigString("generator-settings", "");
-		}
-
-		if(!($generator !== null and class_exists($generator, true) and is_subclass_of($generator, Generator::class))){
-			$generator = Generator::getGenerator($this->getLevelType());
-		}
 
 		if(($provider = LevelProviderManager::getProviderByName($providerName = $this->getProperty("level-settings.default-format", "mcregion"))) === null){
 			$provider = LevelProviderManager::getProviderByName($providerName = "mcregion");
@@ -1128,7 +1117,7 @@ class Server{
 		try{
 			$path = $this->getDataPath() . "worlds/" . $name . "/";
 			/** @var \pocketmine\level\format\LevelProvider $provider */
-			$provider::generate($path, $name, $seed, $generator, $options);
+			$provider::generate($path, $name, $seed, $options);
 
 			$level = new Level($this, $name, $path, $provider);
 			$this->levels[$level->getId()] = $level;
@@ -1483,21 +1472,21 @@ class Server{
 			"motd" => "Minecraft: PE Server",
 			"server-port" => 19132,
 			"white-list" => false,
-			"announce-player-achievements" => true,
+			"announce-player-achievements" => false,
 			"spawn-protection" => 16,
 			"max-players" => 20,
 			"allow-flight" => false,
-			"spawn-animals" => true,
-			"spawn-mobs" => true,
-			"gamemode" => 0,
-			"force-gamemode" => false,
+			"spawn-animals" => false,
+			"spawn-mobs" => false,
+			"gamemode" => 2,
+			"force-gamemode" => true,
 			"hardcore" => false,
 			"pvp" => true,
 			"difficulty" => 1,
-			"generator-settings" => "",
+			"generator-settings" => "0;0;0",
 			"level-name" => "world",
 			"level-seed" => "",
-			"level-type" => "DEFAULT",
+			"level-type" => "FLAT",
 			"enable-query" => true,
 			"enable-rcon" => false,
 			"rcon.password" => substr(base64_encode(@Utils::getRandomBytes(20, false)), 3, 10),
@@ -1634,13 +1623,9 @@ class Server{
 		LevelProviderManager::addProvider($this, Anvil::class);
 		LevelProviderManager::addProvider($this, McRegion::class);
 
-		Generator::addGenerator(Flat::class, "flat");
-
 		foreach((array) $this->getProperty("worlds", []) as $name => $worldSetting){
 			if($this->loadLevel($name) === false){
 				$seed = $this->getProperty("worlds.$name.seed", time());
-				$options = explode(":", $this->getProperty("worlds.$name.generator", Generator::getGenerator("default")));
-				$generator = Generator::getGenerator(array_shift($options));
 				if(count($options) > 0){
 					$options = [
 						"preset" => implode(":", $options),
@@ -1649,7 +1634,7 @@ class Server{
 					$options = [];
 				}
 
-				$this->generateLevel($name, $seed, $generator, $options);
+				$this->generateLevel($name, $seed, $options);
 			}
 		}
 

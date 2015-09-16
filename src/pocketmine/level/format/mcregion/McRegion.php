@@ -23,7 +23,6 @@ namespace pocketmine\level\format\mcregion;
 
 use pocketmine\level\format\FullChunk;
 use pocketmine\level\format\generic\BaseLevelProvider;
-use pocketmine\level\generator\Generator;
 use pocketmine\level\Level;
 use pocketmine\nbt\NBT;
 use pocketmine\nbt\tag\Byte;
@@ -72,7 +71,7 @@ class McRegion extends BaseLevelProvider{
 		return $isValid;
 	}
 
-	public static function generate($path, $name, $seed, $generator, array $options = []){
+	public static function generate($path, $name, $seed, array $options = []){
 		if(!file_exists($path)){
 			mkdir($path, 0777, true);
 		}
@@ -86,16 +85,16 @@ class McRegion extends BaseLevelProvider{
 			"initialized" => new Byte("initialized", 1),
 			"GameType" => new Int("GameType", 0),
 			"generatorVersion" => new Int("generatorVersion", 1), //2 in MCPE
-			"SpawnX" => new Int("SpawnX", 128),
-			"SpawnY" => new Int("SpawnY", 70),
-			"SpawnZ" => new Int("SpawnZ", 128),
+			"SpawnX" => new Int("SpawnX", 0),
+			"SpawnY" => new Int("SpawnY", 10),
+			"SpawnZ" => new Int("SpawnZ", 0),
 			"version" => new Int("version", 19133),
 			"DayTime" => new Int("DayTime", 0),
 			"LastPlayed" => new Long("LastPlayed", microtime(true) * 1000),
 			"RandomSeed" => new Long("RandomSeed", $seed),
 			"SizeOnDisk" => new Long("SizeOnDisk", 0),
 			"Time" => new Long("Time", 0),
-			"generatorName" => new String("generatorName", Generator::getGeneratorName($generator)),
+			"generatorName" => new String("generatorName", "FLAT"),
 			"generatorOptions" => new String("generatorOptions", isset($options["preset"]) ? $options["preset"] : ""),
 			"LevelName" => new String("LevelName", $name),
 			"GameRules" => new Compound("GameRules", [])
@@ -159,14 +158,6 @@ class McRegion extends BaseLevelProvider{
 			$this->unloadChunk($chunk->getX(), $chunk->getZ(), false);
 		}
 		$this->chunks = [];
-	}
-
-	public function getGenerator(){
-		return $this->levelData["generatorName"];
-	}
-
-	public function getGeneratorOptions(){
-		return ["preset" => $this->levelData["generatorOptions"]];
 	}
 
 	public function getLoadedChunks(){

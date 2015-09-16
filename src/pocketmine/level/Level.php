@@ -20,7 +20,7 @@
 */
 
 /**
- * All Level related classes are here, like Generators, Populators, Noise, ...
+ * All Level related classes are here
  */
 namespace pocketmine\level;
 
@@ -66,12 +66,6 @@ use pocketmine\level\format\FullChunk;
 use pocketmine\level\format\generic\BaseLevelProvider;
 use pocketmine\level\format\generic\EmptyChunkSection;
 use pocketmine\level\format\LevelProvider;
-use pocketmine\level\generator\GenerationTask;
-use pocketmine\level\generator\Generator;
-use pocketmine\level\generator\GeneratorRegisterTask;
-use pocketmine\level\generator\GeneratorUnregisterTask;
-use pocketmine\level\generator\LightPopulationTask;
-use pocketmine\level\generator\PopulationTask;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Math;
 use pocketmine\math\Vector2;
@@ -261,11 +255,6 @@ class Level implements ChunkManager, Metadatable{
 	public $tickRateTime = 0;
 	public $tickRateCounter = 0;
 
-	/** @var Generator */
-	private $generator;
-	/** @var Generator */
-	private $generatorInstance;
-
 	/**
 	 * Returns the chunk unique hash/key
 	 *
@@ -343,7 +332,6 @@ class Level implements ChunkManager, Metadatable{
 			throw new LevelException("Provider is not a subclass of LevelProvider");
 		}
 		$this->server->getLogger()->info($this->server->getLanguage()->translateString("pocketmine.level.preparing", [$this->provider->getName()]));
-		$this->generator = Generator::getGenerator($this->provider->getGenerator());
 
 		$this->blockOrder = $provider::getProviderOrder();
 		$this->useSections = $provider::usesChunkSection();
@@ -380,25 +368,6 @@ class Level implements ChunkManager, Metadatable{
 	}
 
 	public function initLevel(){
-		$generator = $this->generator;
-		$this->generatorInstance = new $generator($this->provider->getGeneratorOptions());
-		$this->generatorInstance->init($this, new Random($this->getSeed()));
-
-		$this->registerGenerator();
-	}
-
-	public function registerGenerator(){
-		$size = $this->server->getScheduler()->getAsyncTaskPoolSize();
-		for($i = 0; $i < $size; ++$i){
-			$this->server->getScheduler()->scheduleAsyncTaskToWorker(new GeneratorRegisterTask($this,  $this->generatorInstance), $i);
-		}
-	}
-
-	public function unregisterGenerator(){
-		$size = $this->server->getScheduler()->getAsyncTaskPoolSize();
-		for($i = 0; $i < $size; ++$i){
-			$this->server->getScheduler()->scheduleAsyncTaskToWorker(new GeneratorUnregisterTask($this,  $this->generatorInstance), $i);
-		}
 	}
 
 	/**
@@ -440,8 +409,6 @@ class Level implements ChunkManager, Metadatable{
 		foreach($this->chunks as $chunk){
 			$this->unloadChunk($chunk->getX(), $chunk->getZ(), false);
 		}
-
-		$this->unregisterGenerator();
 
 		$this->provider->close();
 		$this->provider = null;
@@ -2515,10 +2482,6 @@ class Level implements ChunkManager, Metadatable{
 			return false;
 		}
 
-		if(!$chunk->isLightPopulated() and $chunk->isPopulated() and $this->getServer()->getProperty("chunk-ticking.light-updates", false)){
-			$this->getServer()->getScheduler()->scheduleAsyncTask(new LightPopulationTask($this, $chunk));
-		}
-
 		if($this->isChunkInUse($x, $z)){
 			foreach($this->getChunkLoaders($x, $z) as $loader){
 				$loader->onChunkLoaded($chunk);
@@ -2792,18 +2755,22 @@ class Level implements ChunkManager, Metadatable{
 				}
 			}
 
-			if($populate){
-				if(!isset($this->chunkPopulationQueue[$index])){
-					$this->chunkPopulationQueue[$index] = true;
-					for($xx = -1; $xx <= 1; ++$xx){
-						for($zz = -1; $zz <= 1; ++$zz){
-							$this->chunkPopulationLock[Level::chunkHash($x + $xx, $z + $zz)] = true;
-						}
-					}
-					$task = new PopulationTask($this, $chunk);
-					$this->server->getScheduler()->scheduleAsyncTask($task);
-				}
-			}
+            if($populate) {
+
+            }
+
+//			if($populate){
+//				if(!isset($this->chunkPopulationQueue[$index])){
+//					$this->chunkPopulationQueue[$index] = true;
+//					for($xx = -1; $xx <= 1; ++$xx){
+//						for($zz = -1; $zz <= 1; ++$zz){
+//							$this->chunkPopulationLock[Level::chunkHash($x + $xx, $z + $zz)] = true;
+//						}
+//					}
+//					$task = new PopulationTask($this, $chunk);
+//					$this->server->getScheduler()->scheduleAsyncTask($task);
+//				}
+//			}
 
 			Timings::$populationTimer->stopTiming();
 			return false;
