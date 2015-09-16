@@ -243,8 +243,10 @@ class Server{
 
 	/** @var Config */
 	private $properties;
+	private $katanaProperties;
 
 	private $propertyCache = [];
+	private $katanaPropertyCache = [];
 
 	/** @var Config */
 	private $config;
@@ -1224,6 +1226,19 @@ class Server{
 		return $this->propertyCache[$variable] === null ? $defaultValue : $this->propertyCache[$variable];
 	}
 
+	public function getKatanaProperty($variable, $defaultValue = null){
+		if(!array_key_exists($variable, $this->katanaPropertyCache)){
+			$v = getopt("", ["$variable::"]);
+			if(isset($v[$variable])){
+				$this->katanaPropertyCache[$variable] = $v[$variable];
+			}else{
+				$this->katanaPropertyCache[$variable] = $this->katanaProperties->getNested($variable);
+			}
+		}
+
+		return $this->katanaPropertyCache[$variable] === null ? $defaultValue : $this->katanaPropertyCache[$variable];
+	}
+
 	/**
 	 * @param string $variable
 	 * @param string $value
@@ -1470,7 +1485,7 @@ class Server{
 			$content = file_get_contents($this->filePath . "src/pocketmine/resources/katana.yml");
 			@file_put_contents($this->dataPath . "katana.yml", $content);
 		}
-		$this->config = new Config($this->dataPath . "katana.yml", Config::YAML, []);
+		$this->katanaProperties = new Config($this->dataPath . "katana.yml", Config::YAML, []);
 
 		$this->logger->debug("Loading server properties...");
 		$this->properties = new Config($this->dataPath . "server.properties", Config::PROPERTIES, [
