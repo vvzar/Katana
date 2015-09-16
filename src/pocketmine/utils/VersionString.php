@@ -23,7 +23,7 @@ namespace pocketmine\utils;
 
 
 /**
- * Manages PocketMine-MP version strings, and compares them
+ * Manages Katana version strings, and compares them
  */
 class VersionString{
 	private $major;

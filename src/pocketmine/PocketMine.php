@@ -378,7 +378,7 @@ namespace pocketmine {
 	}
 
 	if(php_sapi_name() !== "cli"){
-		$logger->critical("You must run PocketMine-MP using the CLI.");
+		$logger->critical("You must run Katana using the CLI.");
 		++$errors;
 	}
 
@@ -457,7 +457,7 @@ namespace pocketmine {
 	}
 
 	if(\Phar::running(true) === ""){
-		$logger->warning("Non-packaged PocketMine-MP installation detected, do not use on production.");
+		$logger->warning("Non-packaged Katana installation detected, do not use on production.");
 	}
 
 	ThreadManager::init();

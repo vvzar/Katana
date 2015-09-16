@@ -41,7 +41,7 @@ abstract class UPnP{
 			if($com === false or !is_object($com->StaticPortMappingCollection)){
 				return false;
 			}
-			$com->StaticPortMappingCollection->Add($port, "UDP", $port, $myLocalIP, true, "PocketMine-MP");
+			$com->StaticPortMappingCollection->Add($port, "UDP", $port, $myLocalIP, true, "Katana");
 		}catch(\Exception $e){
 			return false;
 		}

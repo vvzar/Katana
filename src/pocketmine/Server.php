@@ -20,7 +20,7 @@
 */
 
 /**
- * PocketMine-MP is the Minecraft: PE multiplayer server software
+ * Katana is the Minecraft: PE multiplayer server software
  * Homepage: http://www.pocketmine.net/
  */
 namespace pocketmine;
@@ -267,7 +267,7 @@ class Server{
 	 * @return string
 	 */
 	public function getName(){
-		return "PocketMine-MP";
+		return "Katana";
 	}
 
 	/**
@@ -794,7 +794,7 @@ class Server{
 		$nbt->Motion->setTagType(NBT::TAG_Double);
 		$nbt->Rotation->setTagType(NBT::TAG_Float);
 
-		if(file_exists($path . "$name.yml")){ //Importing old PocketMine-MP files
+		if(file_exists($path . "$name.yml")){ //Importing old Katana files
 			$data = new Config($path . "$name.yml", Config::YAML, []);
 			$nbt["playerGameType"] = (int) $data->get("gamemode");
 			$nbt["Level"] = $data->get("position")["level"];
@@ -2033,7 +2033,7 @@ class Server{
 	}
 
 	/**
-	 * Starts the PocketMine-MP server and starts processing ticks and packets
+	 * Starts the Katana server and starts processing ticks and packets
 	 */
 	public function start(){
 		if($this->getConfigBoolean("enable-query", true) === true){

@@ -22,7 +22,7 @@
 namespace pocketmine\math;
 
 /**
- * WARNING: This class is available on the PocketMine-MP Zephir project.
+ * WARNING: This class is available on the Katana Zephir project.
  * If this class is modified, remember to modify the PHP C extension.
  */
 class Vector2{
