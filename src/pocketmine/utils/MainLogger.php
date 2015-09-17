@@ -34,6 +34,11 @@ class MainLogger extends \AttachableThreadedLogger{
 	/** @var MainLogger */
 	public static $logger = null;
 
+	/* Logging Settings */
+	protected $showTimestamps = false;
+	protected $showLevel = false;
+	protected $showThread = false;
+
 	/**
 	 * @param string $logFile
 	 * @param bool   $logDebug
@@ -189,7 +194,13 @@ class MainLogger extends \AttachableThreadedLogger{
 			$threadName = (new \ReflectionClass($thread))->getShortName() . " thread";
 		}
 
-		$message = TextFormat::toANSI(TextFormat::AQUA . "[" . date("H:i:s", $now) . "] ". TextFormat::RESET . $color ."[" . $threadName . "/" . $prefix . "]:" . " " . $message . TextFormat::RESET);
+		$text = "";
+		if($this->showTimestamps) $text .= TextFormat::AQUA . "[" . date("H:i:s", $now) . "] ". TextFormat::RESET;
+		if($this->showLevel) $text .= "[" . ($this->showThread ? $threadName . "/"  : "") . $prefix . "]: ";
+		$text .= $color;
+		$text .= $message;
+		$text .= TextFormat::RESET;
+		$message = TextFormat::toANSI($text);
 		$cleanMessage = TextFormat::clean($message);
 
 		if(!Terminal::hasFormattingCodes()){
@@ -236,5 +247,11 @@ class MainLogger extends \AttachableThreadedLogger{
 		}
 
 		fclose($this->logResource);
+	}
+
+	public function setSettings($settings) {
+		$this->showLevel = $settings["level"];
+		$this->showThread = $settings["thread"];
+		$this->showTimestamps = $settings["timestamps"];
 	}
 }

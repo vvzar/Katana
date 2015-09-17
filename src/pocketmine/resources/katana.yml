@@ -30,10 +30,16 @@ caching:
  # from the RAM cache and retrieved from disk (if enabled) or be generated anew next time it's needed.
  chunk-ttl: 300
 
-data:
+console:
  # Whether to save player information (position etc) to disk when they log out.
  save-player-data: false
  # Whether to save server log information to disk (console.log).
  save-console: false
  # Whether to save crash dumps on critical errors to disk.
  save-crash-dumps: true
+ # Show timestamps on console?
+ show-timestamps: false
+ # Show log level?
+ show-log-level: false
+ # Show thread?
+ show-thread: false

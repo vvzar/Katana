@@ -1493,6 +1493,12 @@ class Server{
 		}
 		$this->katanaProperties = new Config($this->dataPath . "katana.yml", Config::YAML, []);
 
+		$this->logger->setSettings([
+			"level" => $this->getKatanaProperty("console.show-log-level"),
+			"thread" => $this->getKatanaProperty("console.show-thread"),
+			"timestamps" => $this->getKatanaProperty("console.show-timestamps")
+		]);
+
         $this->redirectEnabled = $this->getKatanaProperty("redirect.enable", false);
 
         $this->redirectOnFull = $this->getKatanaProperty("redirect.redirect-on-full", false);
