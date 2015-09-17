@@ -38,6 +38,7 @@ class MainLogger extends \AttachableThreadedLogger{
 	protected $showTimestamps = false;
 	protected $showLevel = false;
 	protected $showThread = false;
+	protected $write = true;
 
 	/**
 	 * @param string $logFile
@@ -45,14 +46,17 @@ class MainLogger extends \AttachableThreadedLogger{
 	 *
 	 * @throws \RuntimeException
 	 */
-	public function __construct($logFile, $logDebug = false){
+	public function __construct($logFile, $logDebug = false, $write = true){
 		if(static::$logger instanceof MainLogger){
 			throw new \RuntimeException("MainLogger has been already created");
 		}
 		static::$logger = $this;
-		touch($logFile);
-		$this->logFile = $logFile;
-		$this->logDebug = (bool) $logDebug;
+		$this->write = $write;
+		if($write) {
+			touch($logFile);
+			$this->logFile = $logFile;
+			$this->logDebug = (bool) $logDebug;
+		}
 		$this->logStream = \ThreadedFactory::create();
 		$this->start();
 	}
@@ -223,30 +227,32 @@ class MainLogger extends \AttachableThreadedLogger{
 
 	public function run(){
 		$this->shutdown = false;
-		$this->logResource = fopen($this->logFile, "a+b");
-		if(!is_resource($this->logResource)){
-			throw new \RuntimeException("Couldn't open log file");
-		}
+		if($this->write) {
+			$this->logResource = fopen($this->logFile, "a+b");
+			if(!is_resource($this->logResource)){
+				throw new \RuntimeException("Couldn't open log file");
+			}
 
-		while($this->shutdown === false){
-			$this->synchronized(function(){
+			while($this->shutdown === false){
+				$this->synchronized(function(){
+					while($this->logStream->count() > 0){
+						$chunk = $this->logStream->shift();
+						fwrite($this->logResource, $chunk);
+					}
+
+					$this->wait(25000);
+				});
+			}
+
+			if($this->logStream->count() > 0){
 				while($this->logStream->count() > 0){
 					$chunk = $this->logStream->shift();
 					fwrite($this->logResource, $chunk);
 				}
-
-				$this->wait(25000);
-			});
-		}
-
-		if($this->logStream->count() > 0){
-			while($this->logStream->count() > 0){
-				$chunk = $this->logStream->shift();
-				fwrite($this->logResource, $chunk);
 			}
-		}
 
-		fclose($this->logResource);
+			fclose($this->logResource);
+		}
 	}
 
 	public function setSettings($settings) {
