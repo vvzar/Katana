@@ -491,7 +491,7 @@ class Level implements ChunkManager, Metadatable{
 			return false;
 		}
 
-		$this->server->getLogger()->info($this->server->getLanguage()->translateString("pocketmine.level.unloading", [$this->getName()]));
+		$this->server->getLogger()->info(Terminal::$COLOR_AQUA . "system> " . Terminal::$COLOR_GRAY . "Unloading level " . Terminal::$COLOR_WHITE . $this->getName());
 		$defaultLevel = $this->server->getDefaultLevel();
 		foreach($this->getPlayers() as $player){
 			if($this === $defaultLevel or $defaultLevel === null){

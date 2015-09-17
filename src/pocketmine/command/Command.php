@@ -294,7 +294,7 @@ abstract class Command{
 			$users = $source->getServer()->getPluginManager()->getPermissionSubscriptions(Server::BROADCAST_CHANNEL_ADMINISTRATIVE);
 			$colored = TextFormat::GRAY . TextFormat::ITALIC . $result;
 
-			$m->setText($result);
+			$m->setText(TextFormat::AQUA . "system> " . TextFormat::WHITE . $result);
 			$result = clone $m;
 			$m->setText($colored);
 			$colored = clone $m;

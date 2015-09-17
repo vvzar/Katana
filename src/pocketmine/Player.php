@@ -1751,7 +1751,7 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 		$pk->difficulty = $this->server->getDifficulty();
 		$this->dataPacket($pk);
 
-		$this->getServer()->getLogger()->info(Terminal::$COLOR_LIGHT_PURPLE . "game> " . Terminal::$COLOR_WHITE . $this->getName() . Terminal::$COLOR_BLUE . "/" . Terminal::$COLOR_AQUA . $this->ip . Terminal::$COLOR_BLUE . ":" . Terminal::$COLOR_AQUA . $this->port . Terminal::$COLOR_GRAY . " connected");
+		$this->getServer()->getLogger()->info(Terminal::$COLOR_LIGHT_PURPLE . "game> " . Terminal::$COLOR_WHITE . $this->getName() . Terminal::$COLOR_BLUE . "/" . Terminal::$COLOR_AQUA . $this->ip . ":" . $this->port . Terminal::$COLOR_GRAY . " connected");
 
 		if($this->isOp()){
 			$this->setRemoveFormat(false);
@@ -3066,17 +3066,12 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 			$this->loggedIn = false;
 
 			if(isset($ev) and $this->username != "" and $this->spawned !== false and $ev->getQuitMessage() != ""){
-				$this->server->broadcastMessage($ev->getQuitMessage());
+				foreach($this->server->getOnlinePlayers() as $player) $player->sendMessage($ev->getQuitMessage());
 			}
 
 			$this->server->getPluginManager()->unsubscribeFromPermission(Server::BROADCAST_CHANNEL_USERS, $this);
 			$this->spawned = false;
-			$this->server->getLogger()->info($this->getServer()->getLanguage()->translateString("pocketmine.player.logOut", [
-				TextFormat::AQUA . $this->getName() . TextFormat::WHITE,
-				$this->ip,
-				$this->port,
-				$this->getServer()->getLanguage()->translateString($reason)
-			]));
+			$this->getServer()->getLogger()->info(Terminal::$COLOR_LIGHT_PURPLE . "game> " . Terminal::$COLOR_WHITE . $this->getName() . Terminal::$COLOR_BLUE . "/" . Terminal::$COLOR_AQUA . $this->ip . ":" . $this->port . Terminal::$COLOR_GRAY . " disconnected ($reason)");
 			$this->windows = new \SplObjectStorage();
 			$this->windowIndex = [];
 			$this->usedChunks = [];

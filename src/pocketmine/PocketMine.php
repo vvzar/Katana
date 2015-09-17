@@ -471,10 +471,10 @@ namespace pocketmine {
 	ThreadManager::init();
 	$server = new Server($autoloader, $logger, \pocketmine\PATH, \pocketmine\DATA, \pocketmine\PLUGIN_PATH);
 
-	$logger->info("Stopping other threads");
+	$logger->info(Terminal::$COLOR_AQUA . "system> " . Terminal::$COLOR_GRAY . "Stopping other threads");
 
 	foreach(ThreadManager::getInstance()->getAll() as $id => $thread){
-		$logger->debug("Stopping " . (new \ReflectionClass($thread))->getShortName() . " thread");
+		$logger->debug(Terminal::$COLOR_AQUA . "system> " . Terminal::$COLOR_GRAY . "Stopping " . Terminal::$COLOR_WHITE . (new \ReflectionClass($thread))->getShortName() . Terminal::$COLOR_GRAY . " thread");
 		$thread->quit();
 	}
 
