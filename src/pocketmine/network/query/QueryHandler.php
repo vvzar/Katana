@@ -27,6 +27,7 @@ namespace pocketmine\network\query;
 
 use pocketmine\Server;
 use pocketmine\utils\Binary;
+use pocketmine\utils\Terminal;
 use pocketmine\utils\Utils;
 
 class QueryHandler{
@@ -37,10 +38,10 @@ class QueryHandler{
 
 	public function __construct(){
 		$this->server = Server::getInstance();
-		$this->server->getLogger()->debug($this->server->getLanguage()->translateString("pocketmine.server.query.start"));
+
 		$addr = ($ip = $this->server->getIp()) != "" ? $ip : "0.0.0.0";
 		$port = $this->server->getPort();
-		$this->server->getLogger()->debug($this->server->getLanguage()->translateString("pocketmine.server.query.info", [$port]));
+		$this->server->getLogger()->debug(Terminal::$COLOR_AQUA . "system> " . Terminal::$COLOR_GRAY . "Starting query handler");
 		/*
 		The Query protocol is built on top of the existing Minecraft PE UDP network stack.
 		Because the 0xFE packet does not exist in the MCPE protocol,
@@ -53,7 +54,7 @@ class QueryHandler{
 		$this->regenerateToken();
 		$this->lastToken = $this->token;
 		$this->regenerateInfo();
-		$this->server->getLogger()->info($this->server->getLanguage()->translateString("pocketmine.server.query.running", [$addr, $port]));
+		$this->server->getLogger()->debug(Terminal::$COLOR_AQUA . "system> " . Terminal::$COLOR_GRAY . "Query response running on port $port.");
 	}
 
 	public function regenerateInfo(){

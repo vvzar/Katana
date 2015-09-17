@@ -58,6 +58,7 @@ use pocketmine\inventory\ShapedRecipe;
 use pocketmine\inventory\ShapelessRecipe;
 use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\Item;
+use pocketmine\katana\Katana;
 use pocketmine\lang\BaseLang;
 use pocketmine\level\format\anvil\Anvil;
 use pocketmine\level\format\LevelProviderManager;
@@ -236,10 +237,8 @@ class Server{
 
 	/** @var Config */
 	private $properties;
-	private $katanaProperties;
 
 	private $propertyCache = [];
-	private $katanaPropertyCache = [];
 
 	/** @var Config */
 	private $config;
@@ -257,6 +256,13 @@ class Server{
 
 	/** @var Level */
 	private $levelDefault = null;
+
+	/** @var Katana */
+	private $katana;
+
+	public function getKatana() {
+		return $this->katana;
+	}
 
 	/**
 	 * @return string
@@ -729,7 +735,7 @@ class Server{
 	 */
 	public function getOfflinePlayerData($name){
 		$name = strtolower($name);
-		if($this->getKatanaProperty("console.save-player.data", false)) {
+		if($this->katana->getProperty("console.save-player.data", false)) {
 			$path = $this->getDataPath() . "players/";
 			if(file_exists($path . "$name.dat")){
 				try{
@@ -796,7 +802,7 @@ class Server{
 	 * @param bool $async
 	 */
 	public function saveOfflinePlayerData($name, Compound $nbtTag, $async = false){
-		if(!$this->getKatanaProperty("console.save-player-data", false)) return false;
+		if(!$this->katana->getProperty("console.save-player-data", false)) return false;
 		$nbt = new NBT(NBT::BIG_ENDIAN);
 		try{
 			$nbt->setData($nbtTag);
@@ -1165,31 +1171,6 @@ class Server{
 		return $this->propertyCache[$variable] === null ? $defaultValue : $this->propertyCache[$variable];
 	}
 
-	public function getKatanaProperty($variable, $defaultValue = null){
-		if(!array_key_exists($variable, $this->katanaPropertyCache)){
-			$v = getopt("", ["$variable::"]);
-			if(isset($v[$variable])){
-				$this->katanaPropertyCache[$variable] = $v[$variable];
-			}else{
-				$this->katanaPropertyCache[$variable] = $this->katanaProperties->getNested($variable);
-			}
-		}
-
-		return $this->katanaPropertyCache[$variable] === null ? $defaultValue : $this->katanaPropertyCache[$variable];
-	}
-
-    public $redirectEnabled = false;
-
-    public $redirectOnFull = false;
-
-    public $redirectDestination;
-
-    public $redirectDestinationPort = 19132;
-
-    public $redirectDnsTtl;
-
-    public $redirectLastRefresh = 0;
-
 	/**
 	 * @param string $variable
 	 * @param string $value
@@ -1415,33 +1396,12 @@ class Server{
 
 		$this->console = new CommandReader();
 
-		$version = new VersionString($this->getPocketMineVersion());
+		$this->katana = new Katana($this);
 
-		if(!file_exists($this->dataPath . "katana.yml")){
-			$content = file_get_contents($this->filePath . "src/pocketmine/resources/katana.yml");
-			@file_put_contents($this->dataPath . "katana.yml", $content);
-		}
-		$this->katanaProperties = new Config($this->dataPath . "katana.yml", Config::YAML, []);
-
-		if($this->getKatanaProperty("console.save-player-data", false) && !file_exists($dataPath . "players/")) {
+		if($this->katana->getProperty("console.save-player-data", false) && !file_exists($dataPath . "players/")) {
 			mkdir($dataPath . "players/", 0777);
 		}
 
-		$this->logger->setSettings([
-			"level" => $this->getKatanaProperty("console.show-log-level"),
-			"thread" => $this->getKatanaProperty("console.show-thread"),
-			"timestamps" => $this->getKatanaProperty("console.show-timestamps")
-		]);
-
-		$this->logger->info(Terminal::$COLOR_GOLD.",_._._._._._._._._|_________________________________________________,");
-		$this->logger->info(Terminal::$COLOR_GOLD."|_|_|_|_|_|_|_|_|_|________________________________________________/");
-		$this->logger->info(Terminal::$COLOR_GOLD."     _            l");
-		$this->logger->info(Terminal::$COLOR_GOLD."    | | ____ _| |_ __ _ _ __   __ _");
-		$this->logger->info(Terminal::$COLOR_GOLD."    | |/ / _` | __/ _` | '_ \\ / _` |");
-		$this->logger->info(Terminal::$COLOR_GOLD."    |   < (_| | || (_| | | | | (_| |");
-		$this->logger->info(Terminal::$COLOR_GOLD."    |_|\\_\\__,_|\\__\\__,_|_| |_|\\__,_|");
-		$this->logger->info(Terminal::$COLOR_GOLD." ");
-		$this->logger->debug("Loading pocketmine.yml...");
 		if(!file_exists($this->dataPath . "pocketmine.yml")){
 			$content = file_get_contents($this->filePath . "src/pocketmine/resources/pocketmine.yml");
 			if($version->isDev()){
@@ -1451,19 +1411,6 @@ class Server{
 		}
 		$this->config = new Config($this->dataPath . "pocketmine.yml", Config::YAML, []);
 
-        $this->redirectEnabled = $this->getKatanaProperty("redirect.enable", false);
-
-        $this->redirectOnFull = $this->getKatanaProperty("redirect.redirect-on-full", false);
-
-        $redirect = explode(":", $this->getKatanaProperty("redirect.destination", "play.lbsg.net:19132"));
-
-        $this->redirectDestination = gethostbyname($redirect[0]);
-
-        $this->redirectDestinationPort = $redirect[1];
-
-        $this->redirectDnsTtl = $this->getKatanaProperty("redirect.dns-ttl", 0);
-
-		$this->logger->debug("Loading server properties...");
 		$this->properties = new Config($this->dataPath . "server.properties", Config::PROPERTIES, [
 			"motd" => "Minecraft: PE Server",
 			"server-port" => 19132,
@@ -1488,17 +1435,10 @@ class Server{
 			"auto-save" => true,
 		]);
 
-		if($this->getKatanaProperty("cache.save-to-disk", true) && !file_exists($dataPath . "chunk_cache/")){
-			mkdir($dataPath . "chunk_cache/", 0777);
-		}
-
 		$this->forceLanguage = $this->getProperty("settings.force-language", false);
 		$this->baseLang = new BaseLang($this->getProperty("settings.language", BaseLang::FALLBACK_LANGUAGE));
-		$this->logger->debug($this->getLanguage()->translateString("language.selected", [$this->getLanguage()->getName(), $this->getLanguage()->getLang()]));
 
 		$this->memoryManager = new MemoryManager($this);
-
-		$this->logger->info($this->getLanguage()->translateString("pocketmine.server.start", [TextFormat::AQUA . $this->getVersion()]));
 
 		if(($poolSize = $this->getProperty("settings.async-workers", "auto")) === "auto"){
 			$poolSize = ServerScheduler::$WORKERS;
@@ -1562,24 +1502,15 @@ class Server{
 			@cli_set_process_title($this->getName() . " " . $this->getPocketMineVersion());
 		}
 
-		$this->logger->info($this->getLanguage()->translateString("pocketmine.server.networkStart", [$this->getIp() === "" ? "*" : $this->getIp(), $this->getPort()]));
+		$this->getLogger()->info(Terminal::$COLOR_AQUA. "system> " . Terminal::$COLOR_GRAY . "Starting server on " . Terminal::$COLOR_WHITE . ($this->getIp() === "" ? "*" : $this->getIp()) . Terminal::$COLOR_GRAY . ":" . Terminal::$COLOR_WHITE . $this->getPort());
 		define("BOOTUP_RANDOM", @Utils::getRandomBytes(16));
 		$this->serverID = Utils::getMachineUniqueId($this->getIp() . $this->getPort());
 
-		$this->getLogger()->debug("Server unique id: " . $this->getServerUniqueId());
-		$this->getLogger()->debug("Machine unique id: " . Utils::getMachineUniqueId());
+		$this->getLogger()->debug(Terminal::$COLOR_AQUA . "system> " . Terminal::$COLOR_GRAY . "Server unique id: " . $this->getServerUniqueId());
+		$this->getLogger()->debug(Terminal::$COLOR_AQUA . "system> " . Terminal::$COLOR_GRAY . "Machine unique id: " . Utils::getMachineUniqueId());
 
 		$this->network = new Network($this);
 		$this->network->setName($this->getMotd());
-
-
-		$this->logger->info($this->getLanguage()->translateString("pocketmine.server.info", [
-			$this->getName(),
-			($version->isDev() ? TextFormat::YELLOW : "") . $version->get(true) . TextFormat::WHITE,
-			$this->getCodename(),
-			$this->getApiVersion()
-		]));
-		$this->logger->info("Katana is fork of PocketMine-MP, distributed under the LGPL licence");
 
 		Timings::init();
 
@@ -1980,28 +1911,28 @@ class Server{
 				UPnP::RemovePortForward($this->getPort());
 			}
 
-			$this->getLogger()->debug("Disabling all plugins");
+			$this->getLogger()->debug(Terminal::$COLOR_AQUA . "system> " . Terminal::$COLOR_GRAY . "Disabling all plugins");
 			$this->pluginManager->disablePlugins();
 
 			foreach($this->players as $player){
 				$player->close($player->getLeaveMessage(), $this->getProperty("settings.shutdown-message", "Server closed"));
 			}
 
-			$this->getLogger()->debug("Unloading all levels");
+			$this->getLogger()->debug(Terminal::$COLOR_AQUA . "system> " . Terminal::$COLOR_GRAY . "Unloading all levels");
 			foreach($this->getLevels() as $level){
 				$this->unloadLevel($level, true);
 			}
 
-			$this->getLogger()->debug("Removing event handlers");
+			$this->getLogger()->debug(Terminal::$COLOR_AQUA . "system> " . Terminal::$COLOR_GRAY . "Removing event handlers");
 			HandlerList::unregisterAll();
 
-			$this->getLogger()->debug("Saving properties");
+			$this->getLogger()->debug(Terminal::$COLOR_AQUA . "system> " . Terminal::$COLOR_GRAY . "Saving properties");
 			$this->properties->save();
 
-			$this->getLogger()->debug("Closing console");
+			$this->getLogger()->debug(Terminal::$COLOR_AQUA . "system> " . Terminal::$COLOR_GRAY . "Closing console");
 			$this->console->kill();
 
-			$this->getLogger()->debug("Stopping network interfaces");
+			$this->getLogger()->debug(Terminal::$COLOR_AQUA . "system> " . Terminal::$COLOR_GRAY . "Stopping network interfaces");
 			foreach($this->network->getInterfaces() as $interface){
 				$interface->shutdown();
 				$this->network->unregisterInterface($interface);
@@ -2046,10 +1977,7 @@ class Server{
 			pcntl_signal(SIGHUP, [$this, "handleSignal"]);
 			$this->dispatchSignals = true;
 		}
-
-		$this->logger->debug($this->getLanguage()->translateString("pocketmine.server.defaultGameMode", [self::getGamemodeString($this->getGamemode())]));
-
-		$this->logger->info($this->getLanguage()->translateString("pocketmine.server.startFinished", [round(microtime(true) - \pocketmine\START_TIME, 3)]));
+		$this->getLogger()->info(Terminal::$COLOR_AQUA . "system> " . Terminal::$COLOR_WHITE . "Done (" . round(microtime(true) - \pocketmine\START_TIME, 3) . "s)! " . Terminal::$COLOR_GRAY . "For help, type \"help\" or \"?\"");
 
 		$this->tickProcessor();
 		$this->forceShutdown();
@@ -2491,13 +2419,7 @@ class Server{
 			$this->nextTick += 0.05;
 		}
 
-        if($this->redirectDnsTtl >= $this->redirectLastRefresh * 20) {
-            $redirect = explode(":", $this->getKatanaProperty("redirect.destination", "play.lbsg.net:19132"));
-
-            $this->redirectDestination = gethostbyname($redirect[0]);
-            $this->redirectLastRefresh = 0;
-        }
-        $this->redirectLastRefresh++;
+		$this->katana->tickModules();
 
 		return true;
 	}

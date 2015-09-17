@@ -63,6 +63,7 @@ use pocketmine\command\defaults\WhitelistCommand;
 use pocketmine\event\TranslationContainer;
 use pocketmine\Server;
 use pocketmine\utils\MainLogger;
+use pocketmine\utils\Terminal;
 use pocketmine\utils\TextFormat;
 
 class SimpleCommandMap implements CommandMap{
@@ -195,7 +196,8 @@ class SimpleCommandMap implements CommandMap{
 			$target->execute($sender, $sentCommandLabel, $args);
 		}catch(\Exception $e){
 			$sender->sendMessage(new TranslationContainer(TextFormat::RED . "%commands.generic.exception"));
-			$this->server->getLogger()->critical($this->server->getLanguage()->translateString("pocketmine.command.exception", [$commandLine, (string) $target, $e->getMessage()]));
+
+			$this->server->getLogger()->critical(Terminal::$COLOR_GREEN . "plugin> " . Terminal::$COLOR_AQUA . "Unhandled exception executing command '" . $commandLine . "' in' " . (string) $target . ":" . $e->getMessage());
 			$logger = $sender->getServer()->getLogger();
 			if($logger instanceof MainLogger){
 				$logger->logException($e);
@@ -238,7 +240,7 @@ class SimpleCommandMap implements CommandMap{
 
 		foreach($values as $alias => $commandStrings){
 			if(strpos($alias, ":") !== false or strpos($alias, " ") !== false){
-				$this->server->getLogger()->warning($this->server->getLanguage()->translateString("pocketmine.command.alias.illegal", [$alias]));
+				$this->server->getLogger()->warning(Terminal::$COLOR_GREEN . "plugin> " . Terminal::$COLOR_YELLOW . "Could not register alias '$alias' because it contains illegal characters");
 				continue;
 			}
 
@@ -260,7 +262,7 @@ class SimpleCommandMap implements CommandMap{
 			}
 
 			if(strlen($bad) > 0){
-				$this->server->getLogger()->warning($this->server->getLanguage()->translateString("pocketmine.command.alias.notFound", [$alias, $bad]));
+				$this->server->getLogger()->warning(Terminal::$COLOR_GREEN . "plugin> " . Terminal::$COLOR_YELLOW . "Could not register alias '$alias' because it contains commands that do not exist: $bad");
 				continue;
 			}
 

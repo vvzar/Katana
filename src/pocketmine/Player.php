@@ -133,6 +133,7 @@ use pocketmine\plugin\Plugin;
 use pocketmine\tile\Sign;
 use pocketmine\tile\Spawnable;
 use pocketmine\tile\Tile;
+use pocketmine\utils\Terminal;
 use pocketmine\utils\TextFormat;
 
 
@@ -776,7 +777,7 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 			])
 		));
 		if(strlen(trim($ev->getJoinMessage())) > 0){
-			$this->server->broadcastMessage($ev->getJoinMessage());
+			foreach($this->getServer()->getOnlinePlayers() as $player) $player->sendMessage($ev->getJoinMessage());
 		}
 
 		$this->noDamageTicks = 60;
@@ -1750,16 +1751,7 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 		$pk->difficulty = $this->server->getDifficulty();
 		$this->dataPacket($pk);
 
-		$this->server->getLogger()->info($this->getServer()->getLanguage()->translateString("pocketmine.player.logIn", [
-			TextFormat::AQUA . $this->username . TextFormat::WHITE,
-			$this->ip,
-			$this->port,
-			$this->id,
-			$this->level->getName(),
-			round($this->x, 4),
-			round($this->y, 4),
-			round($this->z, 4)
-		]));
+		$this->getServer()->getLogger()->info(Terminal::$COLOR_LIGHT_PURPLE . "game> " . Terminal::$COLOR_WHITE . $this->getName() . Terminal::$COLOR_BLUE . "/" . Terminal::$COLOR_AQUA . $this->ip . Terminal::$COLOR_BLUE . ":" . Terminal::$COLOR_AQUA . $this->port . Terminal::$COLOR_GRAY . " connected");
 
 		if($this->isOp()){
 			$this->setRemoveFormat(false);

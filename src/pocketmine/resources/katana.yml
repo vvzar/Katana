@@ -7,14 +7,14 @@ redirect:
  # Server IP and port to direct players to
  destination: "play.myserver.com:19132"
  # Whether to redirect players when there are no open slots
- redirect-on-full: false
+ on-full: true
  # Redirect players if the ticks per second for the server is below this threshold
- tps-threshold: 18
+ on-threshold: 18
  # If the destination is a weighted DNS record, this defines the length of time before it is
  # resolved and stored again. This prevents constantly probing the DNS server and waiting on
  # results. Set to 0 to store the result until the server restarts, any other value is refresh
  # time in seconds (only when needed).
- dns-ttl: 0
+ dns-ttl: 300
 
 caching:
  # Whether to store the results of Chunk encoding or generate them new every time. Massive performance

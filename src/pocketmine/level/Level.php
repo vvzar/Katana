@@ -105,6 +105,7 @@ use pocketmine\level\particle\Particle;
 use pocketmine\level\sound\Sound;
 use pocketmine\entity\Effect;
 use pocketmine\level\particle\DestroyBlockParticle;
+use pocketmine\utils\Terminal;
 use raklib\Binary;
 
 #include <rules/Level.h>
@@ -321,7 +322,8 @@ class Level implements ChunkManager, Metadatable{
 		}else{
 			throw new LevelException("Provider is not a subclass of LevelProvider");
 		}
-		$this->server->getLogger()->info($this->server->getLanguage()->translateString("pocketmine.level.preparing", [$this->provider->getName()]));
+
+		$this->server->getLogger()->info(Terminal::$COLOR_AQUA . "system> " . Terminal::$COLOR_GRAY . "Preparing level " . Terminal::$COLOR_WHITE . $this->getName());
 
 		$this->blockOrder = $provider::getProviderOrder();
 		$this->useSections = $provider::usesChunkSection();
@@ -341,7 +343,7 @@ class Level implements ChunkManager, Metadatable{
 		$this->temporalVector = new Vector3(0, 0, 0);
 		$this->tickRate = 1;
 
-		if($this->server->getKatanaProperty("cache.save-to-disk", true) && !file_exists("chunk_cache/" . $this->getName() . "/")){
+		if($this->server->getKatana()->getProperty("cache.save-to-disk", true) && !file_exists("chunk_cache/" . $this->getName() . "/")){
 			mkdir("chunk_cache/" . $this->getName() . "/", 0777);
 		}
 	}
@@ -2234,7 +2236,7 @@ class Level implements ChunkManager, Metadatable{
 
 	public function loadChunkFromDisk($x, $z) {
 		if(isset($this->chunkCache[$x.":".$z])) return true;
-		if(!$this->server->getKatanaProperty("cache.save-to-disk", true)) return false;
+		if(!$this->server->getKatana()->getProperty("cache.save-to-disk", true)) return false;
 
 		if(file_exists("chunk_cache/" . $this->getName() . "/" . $x . "_" . $z . ".dat")) {
 			$this->chunkCache[$x.":".$z] = file_get_contents("chunk_cache/" . $this->getName() . "/" . $x . "_" . $z . ".dat");
@@ -2294,7 +2296,7 @@ class Level implements ChunkManager, Metadatable{
 		$data = zlib_encode(Binary::writeInt(strlen($pk->buffer)) . $pk->buffer, ZLIB_ENCODING_DEFLATE, 6);
 		$this->chunkCache[$x.":".$z] = $data;
 
-		if(!$this->server->getKatanaProperty("cache.save-to-disk", true)) {
+		if(!$this->server->getKatana()->getProperty("cache.save-to-disk", true)) {
 			return true;
 		}
 
@@ -2321,7 +2323,7 @@ class Level implements ChunkManager, Metadatable{
 		}
 		$this->timings->syncChunkSendTimer->stopTiming();
 
-		if(!$this->server->getKatanaProperty("cache.save-to-ram", true)) unset($this->chunkCache[$x.":".$z]);
+		if(!$this->server->getKatana()->getProperty("cache.save-to-ram", true)) unset($this->chunkCache[$x.":".$z]);
 	}
 
 	/**
