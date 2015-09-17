@@ -1468,25 +1468,6 @@ class Server{
 
 		$version = new VersionString($this->getPocketMineVersion());
 
-		echo(",_._._._._._._._._|_________________________________________________,\n");
-		echo("|_|_|_|_|_|_|_|_|_|________________________________________________/\n");
-		echo("     _            l\n");
-		echo("    | | ____ _| |_ __ _ _ __   __ _\n");
-		echo("    | |/ / _` | __/ _` | '_ \\ / _` |\n");
-		echo("    |   < (_| | || (_| | | | | (_| |\n");
-		echo("    |_|\\_\\__,_|\\__\\__,_|_| |_|\\__,_|\n");
-		echo(" \n");
-		$this->logger->debug("Loading pocketmine.yml...");
-		if(!file_exists($this->dataPath . "pocketmine.yml")){
-			$content = file_get_contents($this->filePath . "src/pocketmine/resources/pocketmine.yml");
-			if($version->isDev()){
-				$content = str_replace("preferred-channel: stable", "preferred-channel: beta", $content);
-			}
-			@file_put_contents($this->dataPath . "pocketmine.yml", $content);
-		}
-		$this->config = new Config($this->dataPath . "pocketmine.yml", Config::YAML, []);
-
-		$this->logger->debug("Loading katana.yml...");
 		if(!file_exists($this->dataPath . "katana.yml")){
 			$content = file_get_contents($this->filePath . "src/pocketmine/resources/katana.yml");
 			@file_put_contents($this->dataPath . "katana.yml", $content);
@@ -1498,6 +1479,24 @@ class Server{
 			"thread" => $this->getKatanaProperty("console.show-thread"),
 			"timestamps" => $this->getKatanaProperty("console.show-timestamps")
 		]);
+
+		$this->logger->info(Terminal::$COLOR_GOLD.",_._._._._._._._._|_________________________________________________,");
+		$this->logger->info(Terminal::$COLOR_GOLD."|_|_|_|_|_|_|_|_|_|________________________________________________/");
+		$this->logger->info(Terminal::$COLOR_GOLD."     _            l");
+		$this->logger->info(Terminal::$COLOR_GOLD."    | | ____ _| |_ __ _ _ __   __ _");
+		$this->logger->info(Terminal::$COLOR_GOLD."    | |/ / _` | __/ _` | '_ \\ / _` |");
+		$this->logger->info(Terminal::$COLOR_GOLD."    |   < (_| | || (_| | | | | (_| |");
+		$this->logger->info(Terminal::$COLOR_GOLD."    |_|\\_\\__,_|\\__\\__,_|_| |_|\\__,_|");
+		$this->logger->info(Terminal::$COLOR_GOLD." ");
+		$this->logger->debug("Loading pocketmine.yml...");
+		if(!file_exists($this->dataPath . "pocketmine.yml")){
+			$content = file_get_contents($this->filePath . "src/pocketmine/resources/pocketmine.yml");
+			if($version->isDev()){
+				$content = str_replace("preferred-channel: stable", "preferred-channel: beta", $content);
+			}
+			@file_put_contents($this->dataPath . "pocketmine.yml", $content);
+		}
+		$this->config = new Config($this->dataPath . "pocketmine.yml", Config::YAML, []);
 
         $this->redirectEnabled = $this->getKatanaProperty("redirect.enable", false);
 
