@@ -908,10 +908,6 @@ class Level implements ChunkManager, Metadatable{
 				}
 			}
 		}
-
-		if($this->clearChunksOnTick){
-			$this->chunkTickList = [];
-		}
 	}
 
 	public function __debugInfo(){
