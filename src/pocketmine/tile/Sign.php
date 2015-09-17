@@ -59,7 +59,6 @@ class Sign extends Spawnable{
 
 		if($this->chunk){
 			$this->chunk->setChanged();
-			$this->level->clearChunkCache($this->chunk->getX(), $this->chunk->getZ());
 		}
 
 		return true;

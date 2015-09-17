@@ -67,11 +67,6 @@ memory:
   #Trigger on low memory
   low-memory-trigger: true
 
- world-caches:
-  disable-chunk-cache: true
-  low-memory-trigger: true
-
-
 network:
  #Threshold for batching packets, in bytes. Only these packets will be compressed
  #Set to 0 to compress everything, -1 to disable.
@@ -110,9 +105,6 @@ chunk-sending:
  max-chunks: 192
  #Amount of chunks that need to be sent before spawning the player
  spawn-threshold: 56
- #Save a serialized copy of the chunk in memory for faster sending
- #Useful in mostly-static worlds where lots of players join at the same time
- cache-chunks: false
 
 chunk-ticking:
  #Max amount of chunks processed each tick

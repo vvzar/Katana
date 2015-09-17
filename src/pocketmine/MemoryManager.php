@@ -48,13 +48,6 @@ class MemoryManager{
 	private $garbageCollectionTrigger;
 	private $garbageCollectionAsync;
 
-	private $chunkLimit;
-	private $chunkCollect;
-	private $chunkTrigger;
-
-	private $chunkCache;
-	private $cacheTrigger;
-
 	/** @var \WeakRef[] */
 	private $leakWatch = [];
 
@@ -112,22 +105,11 @@ class MemoryManager{
 		$this->garbageCollectionTrigger = (bool) $this->server->getProperty("memory.garbage-collection.low-memory-trigger", true);
 		$this->garbageCollectionAsync = (bool) $this->server->getProperty("memory.garbage-collection.collect-async-worker", true);
 
-		$this->chunkLimit = (int) $this->server->getProperty("memory.max-chunks.trigger-limit", 96);
-		$this->chunkCollect = (bool) $this->server->getProperty("memory.max-chunks.trigger-chunk-collect", true);
-		$this->chunkTrigger = (bool) $this->server->getProperty("memory.max-chunks.low-memory-trigger", true);
-
-		$this->chunkCache = (bool) $this->server->getProperty("memory.world-caches.disable-chunk-cache", true);
-		$this->cacheTrigger = (bool) $this->server->getProperty("memory.world-caches.low-memory-trigger", true);
-
 		gc_enable();
 	}
 
 	public function isLowMemory(){
 		return $this->lowMemory;
-	}
-
-	public function canUseChunkCache(){
-		return !($this->lowMemory and $this->chunkTrigger);
 	}
 
 	public function getViewDistance($distance){
@@ -136,18 +118,6 @@ class MemoryManager{
 
 	public function trigger($memory, $limit, $global = false, $triggerCount = 0){
 		$this->server->getLogger()->debug("[Memory Manager] ".($global ? "Global " : "") ."Low memory triggered, limit ". round(($limit / 1024) / 1024, 2)."MB, using ". round(($memory / 1024) / 1024, 2)."MB");
-
-		if($this->cacheTrigger){
-			foreach($this->server->getLevels() as $level){
-				$level->clearCache(true);
-			}
-		}
-
-		if($this->chunkTrigger and $this->chunkCollect){
-			foreach($this->server->getLevels() as $level){
-				$level->doChunkGarbageCollection();
-			}
-		}
 
 		$ev = new LowMemoryEvent($memory, $limit, $global, $triggerCount);
 		$this->server->getPluginManager()->callEvent($ev);

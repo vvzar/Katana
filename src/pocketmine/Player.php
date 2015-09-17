@@ -655,7 +655,7 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 		}
 	}
 
-	public function sendChunk($x, $z, $payload, $ordering = FullChunkDataPacket::ORDER_COLUMNS){
+	public function sendChunkRaw($x, $z, $payload, $ordering = FullChunkDataPacket::ORDER_COLUMNS){
 		if($this->connected === false){
 			return;
 		}
@@ -681,6 +681,22 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 				}
 			}
 		}
+	}
+
+	public function sendBatchedChunk($x, $z, $payload) {
+		$this->usedChunks[Level::chunkHash($x, $z)] = true;
+		$this->chunkLoadCount++;
+
+		$bt = new BatchPacket();
+		$bt->payload = $payload;
+		$bt->encode();
+		$bt->isEncoded = true;
+		$this->dataPacket($bt);
+	}
+
+	public function fakeChunkLoad($x, $z) {
+		$this->chunkLoadCount++;
+		$this->usedChunks[Level::chunkHash($x, $z)] = true;
 	}
 
 	protected function sendNextChunk(){
@@ -3557,29 +3573,4 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 	public function isLoaderActive(){
 		return $this->isConnected();
 	}
-
-	/**
-	 * @param $chunkX
-	 * @param $chunkZ
-	 * @param $payload
-	 *
-	 * @return DataPacket
-	 */
-	public static function getChunkCacheFromData($chunkX, $chunkZ, $payload, $ordering = FullChunkDataPacket::ORDER_COLUMNS){
-		$pk = new FullChunkDataPacket();
-		$pk->chunkX = $chunkX;
-		$pk->chunkZ = $chunkZ;
-		$pk->order = $ordering;
-		$pk->data = $payload;
-		$pk->encode();
-
-		$batch = new BatchPacket();
-		$batch->payload = zlib_encode(Binary::writeInt(strlen($pk->getBuffer())) . $pk->getBuffer(), ZLIB_ENCODING_DEFLATE, Server::getInstance()->networkCompressionLevel);
-
-		$batch;
-		$batch->encode();
-		$batch->isEncoded = true;
-		return $batch;
-	}
-
 }

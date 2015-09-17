@@ -83,6 +83,7 @@ use pocketmine\nbt\tag\Int;
 use pocketmine\nbt\tag\Short;
 use pocketmine\nbt\tag\String;
 use pocketmine\network\Network;
+use pocketmine\network\protocol\BatchPacket;
 use pocketmine\network\protocol\DataPacket;
 use pocketmine\network\protocol\FullChunkDataPacket;
 use pocketmine\network\protocol\LevelEventPacket;
@@ -104,6 +105,7 @@ use pocketmine\level\particle\Particle;
 use pocketmine\level\sound\Sound;
 use pocketmine\entity\Effect;
 use pocketmine\level\particle\DestroyBlockParticle;
+use raklib\Binary;
 
 #include <rules/Level.h>
 
@@ -146,11 +148,6 @@ class Level implements ChunkManager, Metadatable{
 
 	private $blockCache = [];
 
-	/** @var DataPacket[] */
-	private $chunkCache = [];
-
-	private $cacheChunks = false;
-
 	private $sendTimeTicker = 0;
 
 	/** @var Server */
@@ -171,8 +168,8 @@ class Level implements ChunkManager, Metadatable{
 	/** @var Player[][] */
 	private $playerLoaders = [];
 
-	/** @var DataPacket[] */
 	private $chunkPackets = [];
+	public $chunkCache = [];
 
 	/** @var float[] */
 	private $unloadQueue;
@@ -217,7 +214,6 @@ class Level implements ChunkManager, Metadatable{
 	private $chunkTickRadius;
 	private $chunkTickList = [];
 	private $chunksPerTick;
-	private $clearChunksOnTick;
 	private $randomTickBlocks = [
 		Block::GRASS => Grass::class,
 		Block::SAPLING => Sapling::class,
@@ -339,13 +335,15 @@ class Level implements ChunkManager, Metadatable{
 		$this->chunksPerTick = (int) $this->server->getProperty("chunk-ticking.per-tick", 40);
 		$this->chunkPopulationQueueSize = (int) $this->server->getProperty("chunk-generation.population-queue-size", 2);
 		$this->chunkTickList = [];
-		$this->clearChunksOnTick = (bool) $this->server->getProperty("chunk-ticking.clear-tick-list", true);
-		$this->cacheChunks = (bool) $this->server->getProperty("chunk-sending.cache-chunks", false);
 
 		$this->timings = new LevelTimings($this);
 		$this->temporalPosition = new Position(0, 0, 0, $this);
 		$this->temporalVector = new Vector3(0, 0, 0);
 		$this->tickRate = 1;
+
+		if($this->server->getKatanaProperty("cache.save-to-disk", true) && !file_exists("chunk_cache/" . $this->getName() . "/")){
+			mkdir("chunk_cache/" . $this->getName() . "/", 0777);
+		}
 	}
 
 	public function getTickRate(){
@@ -394,7 +392,6 @@ class Level implements ChunkManager, Metadatable{
 	}
 
 	public function close(){
-
 		if($this->getAutoSave()){
 			$this->save();
 		}
@@ -406,7 +403,6 @@ class Level implements ChunkManager, Metadatable{
 		$this->provider->close();
 		$this->provider = null;
 		$this->blockMetadata = null;
-		$this->blockCache = [];
 		$this->temporalPosition = null;
 	}
 	
@@ -681,7 +677,6 @@ class Level implements ChunkManager, Metadatable{
 		if(count($this->changedBlocks) > 0){
 			if(count($this->players) > 0){
 				foreach($this->changedBlocks as $index => $blocks){
-					unset($this->chunkCache[$index]);
 					Level::getXZ($index, $chunkX, $chunkZ);
 					if(count($blocks) > 512){
 						$chunk = $this->getChunk($chunkX, $chunkZ);
@@ -692,8 +687,6 @@ class Level implements ChunkManager, Metadatable{
 						$this->sendBlocks($this->getChunkPlayers($chunkX, $chunkZ), $blocks, UpdateBlockPacket::FLAG_ALL);
 					}
 				}
-			}else{
-				$this->chunkCache = [];
 			}
 
 			$this->changedBlocks = [];
@@ -819,27 +812,6 @@ class Level implements ChunkManager, Metadatable{
 
 
 		Server::broadcastPacket($target, $pk);
-	}
-
-	public function clearCache($full = false){
-		if($full){
-			$this->chunkCache = [];
-			$this->blockCache = [];
-		}else{
-			if(count($this->chunkCache) > 768){
-				$this->chunkCache = [];
-			}
-
-			if(count($this->blockCache) > 2048){
-				$this->blockCache = [];
-			}
-
-		}
-
-	}
-
-	public function clearChunkCache($chunkX, $chunkZ){
-		unset($this->chunkCache[Level::chunkHash($chunkX, $chunkZ)]);
 	}
 
 	private function tickChunks(){
@@ -2180,7 +2152,6 @@ class Level implements ChunkManager, Metadatable{
 			}
 		}
 
-		unset($this->chunkCache[$index]);
 		$chunk->setChanged();
 
 		if(!$this->isChunkInUse($chunkX, $chunkZ)){
@@ -2265,17 +2236,15 @@ class Level implements ChunkManager, Metadatable{
 		$this->chunkSendQueue[$index][$player->getLoaderId()] = $player;
 	}
 
-	private function sendChunkFromCache($x, $z){
-		if(isset($this->chunkSendTasks[$index = Level::chunkHash($x, $z)])){
-			foreach($this->chunkSendQueue[$index] as $player){
-				/** @var Player $player */
-				if($player->isConnected() and isset($player->usedChunks[$index])){
-					$player->sendChunk($x, $z, $this->chunkCache[$index]);
-				}
-			}
-			unset($this->chunkSendQueue[$index]);
-			unset($this->chunkSendTasks[$index]);
+	public function loadChunkFromDisk($x, $z) {
+		if(isset($this->chunkCache[$x.":".$z])) return true;
+		if(!$this->server->getKatanaProperty("cache.save-to-disk", true)) return false;
+
+		if(file_exists("chunk_cache/" . $this->getName() . "/" . $x . "_" . $z . ".dat")) {
+			$this->chunkCache[$x.":".$z] = file_get_contents("chunk_cache/" . $this->getName() . "/" . $x . "_" . $z . ".dat");
+			return true;
 		}
+		return false;
 	}
 
 	private function processChunkRequest(){
@@ -2284,14 +2253,20 @@ class Level implements ChunkManager, Metadatable{
 
 			$x = null;
 			$z = null;
+
 			foreach($this->chunkSendQueue as $index => $players){
 				if(isset($this->chunkSendTasks[$index])){
 					continue;
 				}
 				Level::getXZ($index, $x, $z);
 				$this->chunkSendTasks[$index] = true;
-				if(isset($this->chunkCache[$index])){
-					$this->sendChunkFromCache($x, $z);
+				if(isset($this->chunkCache[$x.":".$z]) or $this->loadChunkFromDisk($x, $z)) {
+					foreach($players as $player) {
+						$player->sendBatchedChunk($x, $z, $this->chunkCache[$x.":".$z]);
+					}
+					unset($this->chunkSendQueue[$index]);
+					unset($this->chunkSendTasks[$index]);
+					$this->server->chunkUsedTimes[$this->getName()][$x.":".$z] = time();
 					continue;
 				}
 				$this->timings->syncChunkSendPrepareTimer->startTiming();
@@ -2306,29 +2281,51 @@ class Level implements ChunkManager, Metadatable{
 		}
 	}
 
+	public function saveChunkToDisk($x, $z, $payload, $ordering = FullChunkDataPacket::ORDER_COLUMNS) {
+		/** @var Player $player */
+		if(file_exists("chunk_cache/" . $this->getName() . "/" . $x . "_" . $z . ".dat")) {
+			$this->loadChunkFromDisk($x, $z);
+			return true;
+		}
+
+		$pk = new FullChunkDataPacket();
+		$pk->chunkX = $x;
+		$pk->chunkZ = $z;
+		$pk->order = $ordering;
+		$pk->data = $payload;
+		$pk->encode();
+
+		$data = zlib_encode(Binary::writeInt(strlen($pk->buffer)) . $pk->buffer, ZLIB_ENCODING_DEFLATE, 6);
+		$this->chunkCache[$x.":".$z] = $data;
+
+		if(!$this->server->getKatanaProperty("cache.save-to-disk", true)) {
+			return true;
+		}
+
+		file_put_contents("chunk_cache/" . $this->getName() . "/" . $x . "_" . $z . ".dat", $data);
+		return true;
+	}
+
 	public function chunkRequestCallback($x, $z, $payload, $ordering = FullChunkDataPacket::ORDER_COLUMNS){
 		$this->timings->syncChunkSendTimer->startTiming();
 
 		$index = Level::chunkHash($x, $z);
 
-		if(!isset($this->chunkCache[$index]) and $this->cacheChunks and $this->server->getMemoryManager()->canUseChunkCache()){
-			$this->chunkCache[$index] = Player::getChunkCacheFromData($x, $z, $payload, $ordering);
-			$this->sendChunkFromCache($x, $z);
-			$this->timings->syncChunkSendTimer->stopTiming();
-			return;
-		}
+		$this->saveChunkToDisk($x, $z, $payload, $ordering);
 
 		if(isset($this->chunkSendTasks[$index])){
 			foreach($this->chunkSendQueue[$index] as $player){
 				/** @var Player $player */
 				if($player->isConnected() and isset($player->usedChunks[$index])){
-					$player->sendChunk($x, $z, $payload, $ordering);
+					$player->sendBatchedChunk($x, $z, $this->chunkCache[$x.":".$z]);
 				}
 			}
 			unset($this->chunkSendQueue[$index]);
 			unset($this->chunkSendTasks[$index]);
 		}
 		$this->timings->syncChunkSendTimer->stopTiming();
+
+		if(!$this->server->getKatanaProperty("cache.save-to-ram", true)) unset($this->chunkCache[$x.":".$z]);
 	}
 
 	/**
@@ -2379,7 +2376,6 @@ class Level implements ChunkManager, Metadatable{
 			throw new LevelException("Invalid Tile level");
 		}
 		$this->tiles[$tile->getId()] = $tile;
-		$this->clearChunkCache($tile->getX() >> 4, $tile->getZ() >> 4);
 	}
 
 	/**
@@ -2394,7 +2390,6 @@ class Level implements ChunkManager, Metadatable{
 
 		unset($this->tiles[$tile->getId()]);
 		unset($this->updateTiles[$tile->getId()]);
-		$this->clearChunkCache($tile->getX() >> 4, $tile->getZ() >> 4);
 	}
 
 	/**
@@ -2529,7 +2524,6 @@ class Level implements ChunkManager, Metadatable{
 
 		unset($this->chunks[$index]);
 		unset($this->chunkTickList[$index]);
-		unset($this->chunkCache[$index]);
 
 		$this->timings->doChunkUnload->stopTiming();
 

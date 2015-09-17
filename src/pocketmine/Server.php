@@ -143,6 +143,8 @@ class Server{
 
 	private $hasStopped = false;
 
+	public $chunkUsedTimes = [];
+
 	/** @var PluginManager */
 	private $pluginManager = null;
 
@@ -1536,6 +1538,10 @@ class Server{
 			"auto-save" => true,
 		]);
 
+		if($this->getKatanaProperty("cache.save-to-disk", true) && !file_exists($dataPath . "chunk_cache/")){
+			mkdir($dataPath . "chunk_cache/", 0777);
+		}
+
 		$this->forceLanguage = $this->getProperty("settings.force-language", false);
 		$this->baseLang = new BaseLang($this->getProperty("settings.language", BaseLang::FALLBACK_LANGUAGE));
 		$this->logger->debug($this->getLanguage()->translateString("language.selected", [$this->getLanguage()->getName(), $this->getLanguage()->getLang()]));
@@ -2527,10 +2533,6 @@ class Server{
 		}
 
 		if(($this->tickCounter % 100) === 0){
-			foreach($this->levels as $level){
-				$level->clearCache();
-			}
-
 			if($this->getTicksPerSecondAverage() < 12){
 				$this->logger->warning($this->getLanguage()->translateString("pocketmine.server.tickOverload"));
 			}
