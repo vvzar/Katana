@@ -1468,6 +1468,14 @@ class Server{
 
 		$version = new VersionString($this->getPocketMineVersion());
 
+		echo(",_._._._._._._._._|_________________________________________________,\n");
+		echo("|_|_|_|_|_|_|_|_|_|________________________________________________/\n");
+		echo("     _            l\n");
+		echo("    | | ____ _| |_ __ _ _ __   __ _\n");
+		echo("    | |/ / _` | __/ _` | '_ \\ / _` |\n");
+		echo("    |   < (_| | || (_| | | | | (_| |\n");
+		echo("    |_|\\_\\__,_|\\__\\__,_|_| |_|\\__,_|\n");
+		echo(" \n");
 		$this->logger->debug("Loading pocketmine.yml...");
 		if(!file_exists($this->dataPath . "pocketmine.yml")){
 			$content = file_get_contents($this->filePath . "src/pocketmine/resources/pocketmine.yml");
@@ -1613,7 +1621,7 @@ class Server{
 			$this->getCodename(),
 			$this->getApiVersion()
 		]));
-		$this->logger->info($this->getLanguage()->translateString("pocketmine.server.license", [$this->getName()]));
+		$this->logger->info("Katana is fork of PocketMine-MP, distributed under the LGPL licence");
 
 		Timings::init();
 
