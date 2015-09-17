@@ -1239,6 +1239,18 @@ class Server{
 		return $this->katanaPropertyCache[$variable] === null ? $defaultValue : $this->katanaPropertyCache[$variable];
 	}
 
+    public $redirectEnabled = false;
+
+    public $redirectOnFull = false;
+
+    public $redirectDestination;
+
+    public $redirectDestinationPort = 19132;
+
+    public $redirectDnsTtl;
+
+    public $redirectLastRefresh = 0;
+
 	/**
 	 * @param string $variable
 	 * @param string $value
@@ -1486,6 +1498,18 @@ class Server{
 			@file_put_contents($this->dataPath . "katana.yml", $content);
 		}
 		$this->katanaProperties = new Config($this->dataPath . "katana.yml", Config::YAML, []);
+
+        $this->redirectEnabled = $this->getKatanaProperty("redirect.enable", false);
+
+        $this->redirectOnFull = $this->getKatanaProperty("redirect.redirect-on-full", false);
+
+        $redirect = explode(":", $this->getKatanaProperty("redirect.destination", "play.lbsg.net:19132"));
+
+        $this->redirectDestination = gethostbyname($redirect[0]);
+
+        $this->redirectDestinationPort = $redirect[1];
+
+        $this->redirectDnsTtl = $this->getKatanaProperty("redirect.dns-ttl", 0);
 
 		$this->logger->debug("Loading server properties...");
 		$this->properties = new Config($this->dataPath . "server.properties", Config::PROPERTIES, [
@@ -2544,6 +2568,14 @@ class Server{
 		}else{
 			$this->nextTick += 0.05;
 		}
+
+        if($this->redirectDnsTtl >= $this->redirectLastRefresh * 20) {
+            $redirect = explode(":", $this->getKatanaProperty("redirect.destination", "play.lbsg.net:19132"));
+
+            $this->redirectDestination = gethostbyname($redirect[0]);
+            $this->redirectLastRefresh = 0;
+        }
+        $this->redirectLastRefresh++;
 
 		return true;
 	}

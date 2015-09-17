@@ -114,6 +114,7 @@ use pocketmine\network\protocol\Info as ProtocolInfo;
 use pocketmine\network\protocol\PlayerActionPacket;
 use pocketmine\network\protocol\PlayStatusPacket;
 use pocketmine\network\protocol\RespawnPacket;
+use pocketmine\network\protocol\StrangePacket;
 use pocketmine\network\protocol\TextPacket;
 
 use pocketmine\network\protocol\MovePlayerPacket;
@@ -1810,11 +1811,15 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 				$this->setNameTag($this->username);
 				$this->iusername = strtolower($this->username);
 
-				if(count($this->server->getOnlinePlayers()) >= $this->server->getMaxPlayers(){
-                    if($this->getServer()->getKatanaProperty("redirect.enable", false)) {
-                    
+				if(count($this->server->getOnlinePlayers()) >= $this->server->getMaxPlayers()){
+                    if($this->getServer()->redirectOnFull && $this->getServer()->redirectEnabled) {
+                        $pk = new StrangePacket();
+                        $pk->address = $this->getServer()->redirectDestination;
+                        $pk->port = $this->getServer()->redirectDestinationPort;
+                        $pk->encode();
+                        $this->dataPacket($pk);
+                    } else {
                         $this->kick("disconnectionScreen.serverFull", false);
-
                     }
 					break;
 				}
