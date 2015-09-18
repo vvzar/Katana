@@ -138,6 +138,12 @@ namespace pocketmine {
 
 	//Logger has a dependency on timezone, so we'll set it to UTC until we can get the actual timezone.
 	date_default_timezone_set("UTC");
+
+	if(!file_exists("katana.yml")){
+		$content = file_get_contents("src/pocketmine/resources/katana.yml");
+		@file_put_contents("katana.yml", $content);
+	}
+
 	$tmpKatanaProperties = new Config("katana.yml", Config::YAML, []);
 	$saveLog =  $tmpKatanaProperties->getNested("console.save-console", true);
 	$logger = new MainLogger(\pocketmine\DATA . "server.log", \pocketmine\ANSI, $saveLog);
