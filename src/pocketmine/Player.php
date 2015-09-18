@@ -24,7 +24,6 @@ namespace pocketmine;
 use pocketmine\block\Block;
 use pocketmine\command\CommandSender;
 use pocketmine\entity\Arrow;
-use pocketmine\entity\Attribute;
 use pocketmine\entity\AttributeManager;
 use pocketmine\entity\Effect;
 use pocketmine\entity\Entity;
@@ -123,12 +122,10 @@ use pocketmine\network\protocol\TextPacket;
 use pocketmine\network\protocol\MovePlayerPacket;
 use pocketmine\network\protocol\SetDifficultyPacket;
 use pocketmine\network\protocol\SetEntityMotionPacket;
-use pocketmine\network\protocol\SetHealthPacket;
 use pocketmine\network\protocol\SetSpawnPositionPacket;
 use pocketmine\network\protocol\SetTimePacket;
 use pocketmine\network\protocol\StartGamePacket;
 use pocketmine\network\protocol\TakeItemEntityPacket;
-use pocketmine\network\protocol\UpdateAttributesPacket;
 use pocketmine\network\protocol\UpdateBlockPacket;
 use pocketmine\network\SourceInterface;
 use pocketmine\permission\PermissibleBase;
@@ -3362,11 +3359,6 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 	public function setHealth($amount){
 		parent::setHealth($amount);
 		if($this->spawned === true){
-////            if($amount === 20 || $amount === 0) {
-//                $pk = new SetHealthPacket();
-//                $pk->health = $this->getHealth();
-//                $this->dataPacket($pk);
-////            }
             $this->foodTick = 0;
             $this->getAttribute()->getAttribute(AttributeManager::MAX_HEALTH)->setValue($amount);
 		}
