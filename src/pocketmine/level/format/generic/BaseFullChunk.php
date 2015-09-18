@@ -277,6 +277,11 @@ abstract class BaseFullChunk implements FullChunk{
 		}
 	}
 
+	/** @deprecated */
+	public function setBiomeColor($x, $z, $R, $G, $B){
+
+	}
+
 	public function getHighestBlockAt($x, $z, $cache = true){
 		if($cache){
 			$h = $this->getHeightMap($x, $z);
