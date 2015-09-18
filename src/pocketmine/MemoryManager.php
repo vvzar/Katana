@@ -113,7 +113,7 @@ class MemoryManager{
 	}
 
 	public function getViewDistance($distance){
-		return $this->lowMemory ? min($this->chunkLimit, $distance) : $distance;
+		return $distance;
 	}
 
 	public function trigger($memory, $limit, $global = false, $triggerCount = 0){
