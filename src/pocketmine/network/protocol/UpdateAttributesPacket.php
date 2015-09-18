@@ -31,8 +31,11 @@ class UpdateAttributesPacket extends DataPacket{
 
 
 	public $entityId;
-	/** @var Attribute[] */
-	public $entries = [];
+
+    public $minValue;
+    public $maxValue;
+    public $value;
+    public $name;
 
 	public function decode(){
 
@@ -43,14 +46,11 @@ class UpdateAttributesPacket extends DataPacket{
 
 		$this->putLong($this->entityId);
 
-		$this->putShort(count($this->entries));
+		$this->putShort(1);
 
-		foreach($this->entries as $entry){
-			$this->putFloat($entry->getMinValue());
-			$this->putFloat($entry->getMaxValue());
-			$this->putFloat($entry->getValue());
-			$this->putString($entry->getName());
-		}
+        $this->putFloat($this->minValue);
+        $this->putFloat($this->maxValue);
+        $this->putFloat($this->value);
+        $this->putString($this->name);
 	}
-
 }
