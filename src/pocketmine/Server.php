@@ -1502,12 +1502,12 @@ class Server{
 			@cli_set_process_title($this->getName() . " " . $this->getPocketMineVersion());
 		}
 
-		$this->getLogger()->info(Terminal::$COLOR_AQUA. "system> " . Terminal::$COLOR_GRAY . "Starting server on " . Terminal::$COLOR_WHITE . ($this->getIp() === "" ? "*" : $this->getIp()) . Terminal::$COLOR_GRAY . ":" . Terminal::$COLOR_WHITE . $this->getPort());
+		$this->katana->console->system("Starting server on " . Terminal::$COLOR_WHITE . ($this->getIp() === "" ? "*" : $this->getIp()) . Terminal::$COLOR_GRAY . ":" . Terminal::$COLOR_WHITE . $this->getPort());
 		define("BOOTUP_RANDOM", @Utils::getRandomBytes(16));
 		$this->serverID = Utils::getMachineUniqueId($this->getIp() . $this->getPort());
 
-		$this->getLogger()->debug(Terminal::$COLOR_AQUA . "system> " . Terminal::$COLOR_GRAY . "Server unique id: " . $this->getServerUniqueId());
-		$this->getLogger()->debug(Terminal::$COLOR_AQUA . "system> " . Terminal::$COLOR_GRAY . "Machine unique id: " . Utils::getMachineUniqueId());
+		$this->katana->console->system("Server unique id: " . $this->getServerUniqueId());
+		$this->katana->console->system("Machine unique id: " . Utils::getMachineUniqueId());
 
 		$this->network = new Network($this);
 		$this->network->setName($this->getMotd());
@@ -1844,7 +1844,7 @@ class Server{
 	}
 
 	public function reload(){
-		$this->logger->info("Saving levels...");
+		$this->katana->console->system("Saving levels...");
 
 		foreach($this->levels as $level){
 			$level->save();
@@ -1854,7 +1854,7 @@ class Server{
 		$this->pluginManager->clearPlugins();
 		$this->commandMap->clearCommands();
 
-		$this->logger->info("Reloading properties...");
+		$this->katana->console->system("Reloading properties...");
 		$this->properties->reload();
 		$this->maxPlayers = $this->getConfigInt("max-players", 20);
 
@@ -1907,32 +1907,32 @@ class Server{
 			}
 
 			if($this->getProperty("network.upnp-forwarding", false) === true){
-				$this->logger->info("[UPnP] Removing port forward...");
+				$this->katana->console->system("[UPnP] Removing port forward...");
 				UPnP::RemovePortForward($this->getPort());
 			}
 
-			$this->getLogger()->debug(Terminal::$COLOR_AQUA . "system> " . Terminal::$COLOR_GRAY . "Disabling all plugins");
+			$this->katana->console->system(Terminal::$COLOR_GRAY . "Disabling all plugins");
 			$this->pluginManager->disablePlugins();
 
 			foreach($this->players as $player){
 				$player->close($player->getLeaveMessage(), $this->getProperty("settings.shutdown-message", "Server closed"));
 			}
 
-			$this->getLogger()->debug(Terminal::$COLOR_AQUA . "system> " . Terminal::$COLOR_GRAY . "Unloading all levels");
+			$this->katana->console->system(Terminal::$COLOR_GRAY . "Unloading all levels");
 			foreach($this->getLevels() as $level){
 				$this->unloadLevel($level, true);
 			}
 
-			$this->getLogger()->debug(Terminal::$COLOR_AQUA . "system> " . Terminal::$COLOR_GRAY . "Removing event handlers");
+			$this->katana->console->system("Removing event handlers");
 			HandlerList::unregisterAll();
 
-			$this->getLogger()->debug(Terminal::$COLOR_AQUA . "system> " . Terminal::$COLOR_GRAY . "Saving properties");
+			$this->katana->console->system("Saving properties");
 			$this->properties->save();
 
-			$this->getLogger()->debug(Terminal::$COLOR_AQUA . "system> " . Terminal::$COLOR_GRAY . "Closing console");
+			$this->katana->console->system("Closing console");
 			$this->console->kill();
 
-			$this->getLogger()->debug(Terminal::$COLOR_AQUA . "system> " . Terminal::$COLOR_GRAY . "Stopping network interfaces");
+			$this->katana->console->system("Stopping network interfaces");
 			foreach($this->network->getInterfaces() as $interface){
 				$interface->shutdown();
 				$this->network->unregisterInterface($interface);
@@ -1965,7 +1965,7 @@ class Server{
 		}
 
 		if($this->getProperty("network.upnp-forwarding", false) == true){
-			$this->logger->info("[UPnP] Trying to port forward...");
+			$this->katana->console->system("[UPnP] Trying to port forward...");
 			UPnP::PortForward($this->getPort());
 		}
 
@@ -1977,7 +1977,7 @@ class Server{
 			pcntl_signal(SIGHUP, [$this, "handleSignal"]);
 			$this->dispatchSignals = true;
 		}
-		$this->getLogger()->info(Terminal::$COLOR_AQUA . "system> " . Terminal::$COLOR_WHITE . "Done (" . round(microtime(true) - \pocketmine\START_TIME, 3) . "s)! " . Terminal::$COLOR_GRAY . "For help, type \"help\" or \"?\"");
+		$this->katana->console->system(Terminal::$COLOR_WHITE . "Done (" . round(microtime(true) - \pocketmine\START_TIME, 3) . "s)! " . Terminal::$COLOR_GRAY . "For help, type \"help\" or \"?\"");
 
 		$this->tickProcessor();
 		$this->forceShutdown();

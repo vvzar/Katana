@@ -30,7 +30,7 @@ class RedirectEngine extends KatanaModule {
 
 		$destination = parent::getKatana()->getProperty("redirect.destination", "play.myserver.com:19132");
 		if(count($targets = explode(":", $destination)) !== 2) {
-			parent::getKatana()->logWarning("Invalid redirect destination (" . $destination . ").");
+			parent::getKatana()->console->katana("Invalid redirect destination (" . $destination . ").", "warning");
 			$targets = ["play.myserver.com", "19132"];
 		}
 
@@ -41,7 +41,7 @@ class RedirectEngine extends KatanaModule {
 		}
 
 		if(intval($targets[1]) === 0) {
-			parent::getKatana()->logWarning("Invalid port (" . $targets[1] . ").");
+			parent::getKatana()->console->katana("Invalid port (" . $targets[1] . ").", "warning");
 		} else {
 			$this->port = intval($targets[1]);
 		}
@@ -53,7 +53,7 @@ class RedirectEngine extends KatanaModule {
 
 	public function getIP() {
 		if(time() > ($this->lastDNSRefresh + $this->dnsTTL)) {
-			parent::getKatana()->logDebug("Refreshed DNS for player redirection");
+			parent::getKatana()->console->katana("Refreshed DNS for player redirection", "debug");
 			$this->ip = gethostbyname($this->dns);
 			$this->lastDNSRefresh = time();
 		}

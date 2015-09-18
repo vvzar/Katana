@@ -323,7 +323,7 @@ class Level implements ChunkManager, Metadatable{
 			throw new LevelException("Provider is not a subclass of LevelProvider");
 		}
 
-		$this->server->getLogger()->info(Terminal::$COLOR_AQUA . "system> " . Terminal::$COLOR_GRAY . "Preparing level " . Terminal::$COLOR_WHITE . $this->getName());
+		$this->server->getKatana()->console->system("Preparing level " . Terminal::$COLOR_WHITE . $this->getName());
 
 		$this->blockOrder = $provider::getProviderOrder();
 		$this->useSections = $provider::usesChunkSection();
@@ -491,7 +491,7 @@ class Level implements ChunkManager, Metadatable{
 			return false;
 		}
 
-		$this->server->getLogger()->info(Terminal::$COLOR_AQUA . "system> " . Terminal::$COLOR_GRAY . "Unloading level " . Terminal::$COLOR_WHITE . $this->getName());
+		$this->server->getKatana()->console->system("Unloading level " . Terminal::$COLOR_WHITE . $this->getName());
 		$defaultLevel = $this->server->getDefaultLevel();
 		foreach($this->getPlayers() as $player){
 			if($this === $defaultLevel or $defaultLevel === null){

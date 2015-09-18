@@ -53,7 +53,7 @@ class PharPluginLoader implements PluginLoader{
 	 */
 	public function loadPlugin($file){
 		if(($description = $this->getPluginDescription($file)) instanceof PluginDescription){
-			$this->server->getLogger()->info(Terminal::$COLOR_GREEN . "plugin> " . Terminal::$COLOR_GRAY . "Loading " . Terminal::$COLOR_WHITE . $description->getFullName() . Terminal::$COLOR_GRAY . " by " . Terminal::$COLOR_WHITE . implode(", ", $description->getAuthors()));
+			$this->server->getKatana()->console->plugin("Loading " . Terminal::$COLOR_WHITE . $description->getFullName() . Terminal::$COLOR_GRAY . " by " . Terminal::$COLOR_WHITE . implode(", ", $description->getAuthors()));
 			$dataFolder = dirname($file) . DIRECTORY_SEPARATOR . $description->getName();
 			if(file_exists($dataFolder) and !is_dir($dataFolder)){
 				throw new \InvalidStateException("Projected dataFolder '" . $dataFolder . "' for " . $description->getName() . " exists and is not a directory");
@@ -119,7 +119,7 @@ class PharPluginLoader implements PluginLoader{
 	 */
 	public function enablePlugin(Plugin $plugin){
 		if($plugin instanceof PluginBase and !$plugin->isEnabled()){
-			$this->server->getLogger()->info(Terminal::$COLOR_GREEN . "plugin> " . Terminal::$COLOR_GRAY . "Enabling " . Terminal::$COLOR_WHITE . $plugin->getDescription()->getFullName());
+			$this->server->getKatana()->console->plugin("Enabling " . Terminal::$COLOR_WHITE . $plugin->getDescription()->getFullName());
 
 			$plugin->setEnabled(true);
 
@@ -132,7 +132,7 @@ class PharPluginLoader implements PluginLoader{
 	 */
 	public function disablePlugin(Plugin $plugin){
 		if($plugin instanceof PluginBase and $plugin->isEnabled()){
-			$this->server->getLogger()->info(Terminal::$COLOR_GREEN . "plugin> " . Terminal::$COLOR_GRAY . "Disabling " . Terminal::$COLOR_WHITE . $plugin->getDescription()->getFullName());
+			$this->server->getKatana()->console->plugin("Disabling " . Terminal::$COLOR_WHITE . $plugin->getDescription()->getFullName());
 
 			$this->server->getPluginManager()->callEvent(new PluginDisableEvent($plugin));
 

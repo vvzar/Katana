@@ -43,6 +43,6 @@ class KatanaModule {
 	}
 
 	public function writeLoaded() {
-		$this->getKatana()->logDebug("Loaded " .Terminal::$COLOR_AQUA . $this->name . Terminal::$COLOR_GRAY . " module");
+		$this->getKatana()->console->katana("Loaded " .Terminal::$COLOR_AQUA . $this->name . Terminal::$COLOR_GRAY . " module");
 	}
 }

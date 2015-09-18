@@ -44,7 +44,7 @@ class RCON{
 		$this->server = $server;
 		$this->workers = [];
 		$this->password = (string) $password;
-		$this->server->getLogger()->info("Starting remote control listener");
+		$this->server->getKatana()->console->system("Starting remote control listener", "debug");
 		if($this->password === ""){
 			$this->server->getLogger()->critical("RCON can't be started: Empty password");
 
@@ -64,7 +64,7 @@ class RCON{
 			$this->workers[$n] = new RCONInstance($this->socket, $this->password, $this->clientsPerThread);
 		}
 		socket_getsockname($this->socket, $addr, $port);
-		$this->server->getLogger()->info("RCON running on $addr:$port");
+		$this->server->getKatana()->console->system("RCON running on $addr:$port");
 	}
 
 	public function stop(){
@@ -83,7 +83,7 @@ class RCON{
 				$this->workers[$n] = new RCONInstance($this->socket, $this->password, $this->clientsPerThread);
 			}elseif($this->workers[$n]->isWaiting()){
 				if($this->workers[$n]->response !== ""){
-					$this->server->getLogger()->info($this->workers[$n]->response);
+					$this->server->getKatana()->console->system($this->workers[$n]->response);
 					$this->workers[$n]->synchronized(function (RCONInstance $thread){
 						$thread->notify();
 					}, $this->workers[$n]);

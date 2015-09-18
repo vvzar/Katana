@@ -32,6 +32,9 @@ class Katana {
 	/** @var CacheEngine */
 	public $cache;
 
+	/** @var Console */
+	public $console;
+
 	private $modules = [];
 
 	public function __construct($server) {
@@ -93,6 +96,10 @@ class Katana {
 			$this->modules[] = $this->redirect;
 		}
 
+		$this->console = new Console($this);
+		$this->console->init();
+		$this->modules[] = $this->console;
+
 		$this->cache = new CacheEngine($this);
 		$this->cache->init();
 		$this->modules[] = $this->cache;
@@ -100,17 +107,5 @@ class Katana {
 
 	public function tickModules() {
 
-	}
-
-	public function logDebug($text) {
-		$this->getServer()->getLogger()->debug(Terminal::$COLOR_GOLD . "katana> " . Terminal::$COLOR_GRAY . $text);
-	}
-
-	public function logInfo($text) {
-		$this->getServer()->getLogger()->info(Terminal::$COLOR_GOLD . "katana> " . Terminal::$COLOR_WHITE . $text);
-	}
-
-	public function logWarning($text) {
-		$this->getServer()->getLogger()->warning(Terminal::$COLOR_GOLD . "katana> " . Terminal::$COLOR_YELLOW . $text);
 	}
 }
