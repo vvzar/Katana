@@ -1593,7 +1593,7 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
             $this->foodUsageTime += 250;
         }
 
-        if($this->foodUsageTime >= 100000) {
+        if($this->foodUsageTime >= 100000 && $this->foodEnabled) {
             $this->foodUsageTime -= 100000;
             $this->subtractFood(1);
         }
@@ -3367,6 +3367,16 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
     protected $food = 20;
 
     protected $foodDepletion = 0;
+
+    protected $foodEnabled = true;
+
+    public function setFoodEnabled($enabled) {
+        $this->foodEnabled = $enabled;
+    }
+
+    public function getFoodEnabled() {
+        return $this->foodEnabled;
+    }
 
     public function setFood($amount){
         if($amount <= 6 && !($this->getFood() <= 6)) {
