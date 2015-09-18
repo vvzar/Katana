@@ -3391,6 +3391,8 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
         } elseif($amount > 6 && !($this->getFood() > 6)) {
             $this->setDataProperty(self::DATA_FLAG_SPRINTING, self::DATA_TYPE_BYTE, true);
         }
+        if($amount < 0) $amount = 0;
+        if($amount > 20) $amount = 20;
         $this->food = $amount;
         $this->getAttribute()->getAttribute(AttributeManager::MAX_HUNGER)->setValue($amount);
     }
