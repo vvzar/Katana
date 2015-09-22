@@ -230,7 +230,7 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 
 	protected $viewDistance;
 	protected $chunksPerTick;
-    protected $spawnThreshold;
+	protected $spawnThreshold;
 	/** @var null|Position */
 	private $spawnPosition = null;
 
@@ -248,15 +248,15 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 	/** @var PermissibleBase */
 	private $perm = null;
 
-    protected $attribute;
+	protected $attribute;
 
-    public function getAttribute() {
-        return $this->attribute;
-    }
+	public function getAttribute() {
+		return $this->attribute;
+	}
 
-    public function setAttribute($attribute) {
-        $this->attribute = $attribute;
-    }
+	public function setAttribute($attribute) {
+		$this->attribute = $attribute;
+	}
 
 	public function getLeaveMessage(){
 		return new TranslationContainer(TextFormat::YELLOW . "%multiplayer.player.left", [
@@ -524,15 +524,15 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 		$this->clientID = $clientID;
 		$this->loaderId = Level::generateChunkLoaderId($this);
 		$this->chunksPerTick = (int) $this->server->getProperty("chunk-sending.per-tick", 4);
-        $this->spawnThreshold = (int) $this->server->getProperty("chunk-sending.spawn-threshold", 56);
+		$this->spawnThreshold = (int) $this->server->getProperty("chunk-sending.spawn-threshold", 56);
 		$this->spawnPosition = null;
 		$this->gamemode = $this->server->getGamemode();
 		$this->setLevel($this->server->getDefaultLevel());
 		$this->viewDistance = $this->server->getViewDistance();
 		$this->newPosition = new Vector3(0, 0, 0);
 		$this->boundingBox = new AxisAlignedBB(0, 0, 0, 0, 0, 0);
-        $this->attribute = new AttributeManager($this);
-        $this->attribute->init();
+		$this->attribute = new AttributeManager($this);
+		$this->attribute->init();
 
 		$this->uuid = null;
 		$this->rawUUID = null;
@@ -580,9 +580,9 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 		return $this->displayName;
 	}
 
-    /**
-     * @param string $name
-     */
+	/**
+	 * @param string $name
+	 */
 	public function setDisplayName($name){
 		$this->displayName = $name;
 		if($this->spawned){
@@ -1368,6 +1368,7 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 
 	protected function processMovement($tickDiff){
 		if(!$this->isAlive() or !$this->spawned or $this->newPosition === null or $this->teleportPosition !== null){
+			$this->setMoving(false);
 			return;
 		}
 
@@ -1455,6 +1456,7 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 
 			if(!$isFirst){
 				$ev = new PlayerMoveEvent($this, $from, $to);
+				$this->setMoving(true);
 
 				$this->server->getPluginManager()->callEvent($ev);
 
@@ -1470,10 +1472,11 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 			if(!$this->isSpectator()){
 				$this->checkNearEntities($tickDiff);
 			}
-
 			$this->speed = $from->subtract($to);
+
 		}elseif($distanceSquared == 0){
 			$this->speed = new Vector3(0, 0, 0);
+			$this->setMoving(false);
 		}
 
 		if($revert){
@@ -1519,11 +1522,21 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 
 	}
 
-    protected $foodTick = 0;
+	protected $foodTick = 0;
 
-    protected $starvationTick = 0;
+	protected $starvationTick = 0;
 
-    protected $foodUsageTime = 0;
+	protected $foodUsageTime = 0;
+
+	protected $moving = false;
+
+	public function setMoving($moving) {
+		$this->moving = $moving;
+	}
+
+	public function isMoving(){
+		return $this->moving;
+	}
 
 	public function onUpdate($currentTick){
 		if(!$this->loggedIn){
@@ -1579,122 +1592,124 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 					++$this->inAirTicks;
 				}
 			}
+
+			if($this->starvationTick >= 20) {
+				$ev = new EntityDamageEvent($this, EntityDamageEvent::CAUSE_CUSTOM, 1);
+				$this->attack(1, $ev);
+				$this->starvationTick = 0;
+			}
+			if($this->getFood() <= 0) {
+				$this->starvationTick++;
+			}
+
+			if($this->isMoving() && $this->isSurvival()) {
+				if($this->isSprinting()) {
+					$this->foodUsageTime += 500;
+				} else {
+					$this->foodUsageTime += 250;
+				}
+			}
+
+			if($this->foodUsageTime >= 100000 && $this->foodEnabled) {
+				$this->foodUsageTime -= 100000;
+				$this->subtractFood(1);
+			}
+
+			if($this->foodTick >= 80) {
+				if($this->getHealth() < $this->getMaxHealth() && $this->getFood() >= 18) {
+					$ev = new EntityRegainHealthEvent($this, 1, EntityRegainHealthEvent::CAUSE_EATING);
+					$this->heal(1, $ev);
+					if($this->foodDepletion >=2) {
+						$this->subtractFood(1);
+						$this->foodDepletion = 0;
+					} else {
+						$this->foodDepletion++;
+					}
+				}
+				$this->foodTick = 0;
+			}
+			if($this->getHealth() < $this->getMaxHealth()) {
+				$this->foodTick++;
+			}
 		}
 
 		$this->checkTeleportPosition();
 
 		$this->timings->stopTiming();
 
-        if($this->starvationTick >= 20) {
-            $ev = new EntityDamageEvent($this, EntityDamageEvent::CAUSE_CUSTOM, 1);
-            $this->attack(1, $ev);
-            $this->starvationTick = 0;
-        }
-        if($this->getFood() <= 0) {
-            $this->starvationTick++;
-        }
-
-        if($this->isSprinting()) {
-            $this->foodUsageTime += 500;
-        } else {
-            $this->foodUsageTime += 250;
-        }
-
-        if($this->foodUsageTime >= 100000 && $this->foodEnabled) {
-            $this->foodUsageTime -= 100000;
-            $this->subtractFood(1);
-        }
-
-        if($this->foodTick >= 80) {
-            if($this->getHealth() < $this->getMaxHealth() && $this->getFood() >= 18) {
-                $ev = new EntityRegainHealthEvent($this, 1, EntityRegainHealthEvent::CAUSE_EATING);
-                $this->heal(1, $ev);
-                if($this->foodDepletion >=2) {
-                    $this->subtractFood(1);
-                    $this->foodDepletion = 0;
-                } else {
-                    $this->foodDepletion++;
-                }
-            }
-            $this->foodTick = 0;
-        }
-        if($this->getHealth() < $this->getMaxHealth()) {
-            $this->foodTick++;
-        }
-
 		return true;
 	}
 
-    protected $eatCoolDown = 0;
+	protected $eatCoolDown = 0;
 
-    public function eatFoodInHand() {
-        if($this->eatCoolDown + 2000 >= time()) {
-            return;
-        }
+	public function eatFoodInHand() {
+		if($this->eatCoolDown + 2000 >= time()) {
+			return;
+		}
 
-        $items = [ //TODO: move this to item classes
-            Item::APPLE => 4,
-            Item::MUSHROOM_STEW => 6,
-            Item::BEETROOT_SOUP => 5,
-            Item::BREAD => 5,
-            Item::RAW_PORKCHOP => 2,
-            Item::COOKED_PORKCHOP => 8,
-            Item::RAW_BEEF => 3,
-            Item::STEAK => 8,
-            Item::COOKED_CHICKEN => 6,
-            Item::RAW_CHICKEN => 2,
-            Item::MELON_SLICE => 2,
-            Item::GOLDEN_APPLE => 4,
-            Item::PUMPKIN_PIE => 8,
-            Item::CARROT => 3,
-            Item::POTATO => 1,
-            Item::BAKED_POTATO => 5,
-            Item::COOKIE => 2,
-            Item::COOKED_FISH => [
-                0 => 5,
-                1 => 6
-            ],
-            Item::RAW_FISH => [
-                0 => 2,
-                1 => 2,
-                2 => 1,
-                3 => 1
-            ],
-        ];
+		$items = [ //TODO: move this to item classes
+			Item::APPLE => 4,
+			Item::MUSHROOM_STEW => 6,
+			Item::BEETROOT_SOUP => 5,
+			Item::BREAD => 5,
+			Item::RAW_PORKCHOP => 2,
+			Item::COOKED_PORKCHOP => 8,
+			Item::RAW_BEEF => 3,
+			Item::STEAK => 8,
+			Item::COOKED_CHICKEN => 6,
+			Item::RAW_CHICKEN => 2,
+			Item::MELON_SLICE => 2,
+			Item::GOLDEN_APPLE => 4,
+			Item::PUMPKIN_PIE => 8,
+			Item::CARROT => 3,
+			Item::POTATO => 1,
+			Item::BAKED_POTATO => 5,
+			Item::COOKIE => 2,
+			Item::COOKED_FISH => [
+				0 => 5,
+				1 => 6
+			],
+			Item::RAW_FISH => [
+				0 => 2,
+				1 => 2,
+				2 => 1,
+				3 => 1
+			],
+		];
 
-        $slot = $this->inventory->getItemInHand();
-        if(isset($items[$slot->getId()])) {
-            if($this->getFood() < 20 and isset($items[$slot->getId()])){
-                $this->server->getPluginManager()->callEvent($ev = new PlayerItemConsumeEvent($this, $slot));
-                if($ev->isCancelled()){
-                    $this->inventory->sendContents($this);
-                    return;
-                }
+		$slot = $this->inventory->getItemInHand();
+		if(isset($items[$slot->getId()])) {
+			if($this->getFood() < 20 and isset($items[$slot->getId()])){
+				$this->server->getPluginManager()->callEvent($ev = new PlayerItemConsumeEvent($this, $slot));
+				if($ev->isCancelled()){
+					$this->inventory->sendContents($this);
+					return;
+				}
 
-                $pk = new EntityEventPacket();
-                $pk->eid = $this->getId();
-                $pk->event = EntityEventPacket::USE_ITEM;
-                $this->dataPacket($pk);
-                Server::broadcastPacket($this->getViewers(), $pk);
+				$pk = new EntityEventPacket();
+				$pk->eid = $this->getId();
+				$pk->event = EntityEventPacket::USE_ITEM;
+				$this->dataPacket($pk);
+				Server::broadcastPacket($this->getViewers(), $pk);
 
-                $amount = $items[$slot->getId()];
-                if(is_array($amount)){
-                    $amount = isset($amount[$slot->getDamage()]) ? $amount[$slot->getDamage()] : 0;
-                }
-                $this->setFood($this->getFood() + $amount);
+				$amount = $items[$slot->getId()];
+				if(is_array($amount)){
+					$amount = isset($amount[$slot->getDamage()]) ? $amount[$slot->getDamage()] : 0;
+				}
+				$this->setFood($this->getFood() + $amount);
 
-                --$slot->count;
-                $this->inventory->setItemInHand($slot);
-                if($slot->getId() === Item::MUSHROOM_STEW or $slot->getId() === Item::BEETROOT_SOUP){
-                    $this->inventory->addItem(Item::get(Item::BOWL, 0, 1));
-                }elseif($slot->getId() === Item::RAW_FISH and $slot->getDamage() === 3){ //Pufferfish
-                    $this->addEffect(Effect::getEffect(Effect::HUNGER)->setAmplifier(2)->setDuration(15 * 20));
-                    //$this->addEffect(Effect::getEffect(Effect::NAUSEA)->setAmplifier(1)->setDuration(15 * 20));
-                    $this->addEffect(Effect::getEffect(Effect::POISON)->setAmplifier(3)->setDuration(60 * 20));
-                }
-            }
-        }
-    }
+				--$slot->count;
+				$this->inventory->setItemInHand($slot);
+				if($slot->getId() === Item::MUSHROOM_STEW or $slot->getId() === Item::BEETROOT_SOUP){
+					$this->inventory->addItem(Item::get(Item::BOWL, 0, 1));
+				}elseif($slot->getId() === Item::RAW_FISH and $slot->getDamage() === 3){ //Pufferfish
+					$this->addEffect(Effect::getEffect(Effect::HUNGER)->setAmplifier(2)->setDuration(15 * 20));
+					//$this->addEffect(Effect::getEffect(Effect::NAUSEA)->setAmplifier(1)->setDuration(15 * 20));
+					$this->addEffect(Effect::getEffect(Effect::POISON)->setAmplifier(3)->setDuration(60 * 20));
+				}
+			}
+		}
+	}
 
 	public function checkNetwork(){
 		if(!$this->isOnline()){
@@ -1876,7 +1891,7 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 		$pk->z = (int) $spawnPosition->z;
 		$this->dataPacket($pk);
 
-        $this->getAttribute()->sendAll();
+		$this->getAttribute()->sendAll();
 
 		$pk = new SetDifficultyPacket();
 		$pk->difficulty = $this->server->getDifficulty();
@@ -1947,15 +1962,15 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 				$this->iusername = strtolower($this->username);
 
 				if(count($this->server->getOnlinePlayers()) >= $this->server->getMaxPlayers()){
-                    if($this->getServer()->redirectOnFull && $this->getServer()->redirectEnabled) {
-                        $pk = new StrangePacket();
-                        $pk->address = $this->getServer()->redirectDestination;
-                        $pk->port = $this->getServer()->redirectDestinationPort;
-                        $pk->encode();
-                        $this->dataPacket($pk);
-                    } else {
-                        $this->kick("disconnectionScreen.serverFull", false);
-                    }
+					if($this->getServer()->redirectOnFull && $this->getServer()->redirectEnabled) {
+						$pk = new StrangePacket();
+						$pk->address = $this->getServer()->redirectDestination;
+						$pk->port = $this->getServer()->redirectDestinationPort;
+						$pk->encode();
+						$this->dataPacket($pk);
+					} else {
+						$this->kick("disconnectionScreen.serverFull", false);
+					}
 					break;
 				}
 
@@ -2090,13 +2105,13 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 							break;
 						}
 					}else{
-                        if($packet->selectedSlot >= 0 and $packet->selectedSlot < 9){
-                            $this->inventory->setHeldItemIndex($packet->selectedSlot);
-                            $this->inventory->setHeldItemSlot($packet->slot);
-                        }else{
-                            $this->inventory->sendContents($this);
-                            break;
-                        }
+						if($packet->selectedSlot >= 0 and $packet->selectedSlot < 9){
+							$this->inventory->setHeldItemIndex($packet->selectedSlot);
+							$this->inventory->setHeldItemSlot($packet->slot);
+						}else{
+							$this->inventory->sendContents($this);
+							break;
+						}
 					}
 				}elseif($item === null or $slot === -1 or !$item->deepEquals($packet->item)){ // packet error or not implemented
 					$this->inventory->sendContents($this);
@@ -2106,13 +2121,13 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 					$this->inventory->setItem($packet->selectedSlot, $item);
 					$this->inventory->setHeldItemSlot($packet->selectedSlot);
 				}else{
-                    if($packet->selectedSlot >= 0 and $packet->selectedSlot < $this->inventory->getHotbarSize()){
-                        $this->inventory->setHeldItemIndex($packet->selectedSlot);
-                        $this->inventory->setHeldItemSlot($slot);
-                    }else{
-                        $this->inventory->sendContents($this);
-                        break;
-                    }
+					if($packet->selectedSlot >= 0 and $packet->selectedSlot < $this->inventory->getHotbarSize()){
+						$this->inventory->setHeldItemIndex($packet->selectedSlot);
+						$this->inventory->setHeldItemSlot($slot);
+					}else{
+						$this->inventory->sendContents($this);
+						break;
+					}
 				}
 
 				$this->inventory->sendHeldItem($this->hasSpawned);
@@ -2227,7 +2242,7 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 				}
 				break;
 			case ProtocolInfo::PLAYER_ACTION_PACKET:
-                $this->eatFoodInHand();
+				$this->eatFoodInHand();
 				if($this->spawned === false or $this->blocked === true or (!$this->isAlive() and $packet->action !== PlayerActionPacket::ACTION_RESPAWN and $packet->action !== PlayerActionPacket::ACTION_DIMENSION_CHANGE)){
 					break;
 				}
@@ -2371,12 +2386,12 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 						$this->noDamageTicks = 60;
 
 						$this->setHealth($this->getMaxHealth());
-                        $this->setFood(20);
-                        $this->getAttribute()->resetAll();
-                        $this->starvationTick = 0;
-                        $this->foodTick = 0;
-                        $this->lastSentVitals = 10;
-                        $this->foodUsageTime = 0;
+						$this->setFood(20);
+						$this->getAttribute()->resetAll();
+						$this->starvationTick = 0;
+						$this->foodTick = 0;
+						$this->lastSentVitals = 10;
+						$this->foodUsageTime = 0;
 
 						$this->removeAllEffects();
 						$this->sendData($this);
@@ -2465,7 +2480,7 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 
 				$this->level->sendBlocks([$this], [$target], UpdateBlockPacket::FLAG_ALL_PRIORITY);
 
-                $this->inventory->sendHeldItem($this);
+				$this->inventory->sendHeldItem($this);
 
 				if($tile instanceof Spawnable){
 					$tile->spawnTo($this);
@@ -2625,7 +2640,7 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 
 				switch($packet->event){
 					case 9: //Eating
-                        $this->eatFoodInHand();
+						$this->eatFoodInHand();
 						break;
 				}
 				break;
@@ -3366,69 +3381,69 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 	public function setHealth($amount){
 		parent::setHealth($amount);
 		if($this->spawned === true){
-            $this->foodTick = 0;
-            $this->getAttribute()->getAttribute(AttributeManager::MAX_HEALTH)->setValue($amount);
+			$this->foodTick = 0;
+			$this->getAttribute()->getAttribute(AttributeManager::MAX_HEALTH)->setValue($amount);
 		}
 	}
 
-    protected $food = 20;
+	protected $food = 20;
 
-    protected $foodDepletion = 0;
+	protected $foodDepletion = 0;
 
-    protected $foodEnabled = true;
+	protected $foodEnabled = true;
 
-    public function setFoodEnabled($enabled) {
-        $this->foodEnabled = $enabled;
-    }
+	public function setFoodEnabled($enabled) {
+		$this->foodEnabled = $enabled;
+	}
 
-    public function getFoodEnabled() {
-        return $this->foodEnabled;
-    }
+	public function getFoodEnabled() {
+		return $this->foodEnabled;
+	}
 
-    public function setFood($amount){
-        if($amount <= 6 && !($this->getFood() <= 6)) {
-            $this->setDataProperty(self::DATA_FLAG_SPRINTING, self::DATA_TYPE_BYTE, false);
-        } elseif($amount > 6 && !($this->getFood() > 6)) {
-            $this->setDataProperty(self::DATA_FLAG_SPRINTING, self::DATA_TYPE_BYTE, true);
-        }
-        if($amount < 0) $amount = 0;
-        if($amount > 20) $amount = 20;
-        $this->food = $amount;
-        $this->getAttribute()->getAttribute(AttributeManager::MAX_HUNGER)->setValue($amount);
-    }
+	public function setFood($amount){
+		if($amount <= 6 && !($this->getFood() <= 6)) {
+			$this->setDataProperty(self::DATA_FLAG_SPRINTING, self::DATA_TYPE_BYTE, false);
+		} elseif($amount > 6 && !($this->getFood() > 6)) {
+			$this->setDataProperty(self::DATA_FLAG_SPRINTING, self::DATA_TYPE_BYTE, true);
+		}
+		if($amount < 0) $amount = 0;
+		if($amount > 20) $amount = 20;
+		$this->food = $amount;
+		$this->getAttribute()->getAttribute(AttributeManager::MAX_HUNGER)->setValue($amount);
+	}
 
-    public function getFood() {
-        return $this->food;
-    }
+	public function getFood() {
+		return $this->food;
+	}
 
-    public function subtractFood($amount){
-        if($this->getFood()-$amount <= 6 && !($this->getFood() <= 6)) {
-            $this->setDataProperty(self::DATA_FLAG_SPRINTING, self::DATA_TYPE_BYTE, false);
-            $this->removeEffect(Effect::SLOWNESS);
-        } elseif($this->getFood()-$amount < 6 && !($this->getFood() > 6)) {
-            $this->setDataProperty(self::DATA_FLAG_SPRINTING, self::DATA_TYPE_BYTE, true);
-            $effect = Effect::getEffect(Effect::SLOWNESS);
-            $effect->setDuration(0x7fffffff);
-            $effect->setAmplifier(2);
-            $effect->setVisible(false);
-            $this->addEffect($effect);
-        }
-        if($this->food - $amount < 0) return;
-        $this->setFood($this->getFood() - $amount);
-    }
+	public function subtractFood($amount){
+		if($this->getFood()-$amount <= 6 && !($this->getFood() <= 6)) {
+			$this->setDataProperty(self::DATA_FLAG_SPRINTING, self::DATA_TYPE_BYTE, false);
+			$this->removeEffect(Effect::SLOWNESS);
+		} elseif($this->getFood()-$amount < 6 && !($this->getFood() > 6)) {
+			$this->setDataProperty(self::DATA_FLAG_SPRINTING, self::DATA_TYPE_BYTE, true);
+			$effect = Effect::getEffect(Effect::SLOWNESS);
+			$effect->setDuration(0x7fffffff);
+			$effect->setAmplifier(2);
+			$effect->setVisible(false);
+			$this->addEffect($effect);
+		}
+		if($this->food - $amount < 0) return;
+		$this->setFood($this->getFood() - $amount);
+	}
 
 	public function attack($damage, EntityDamageEvent $source){
 		if(!$this->isAlive()){
 			return;
 		}
 
-        if($this->isCreative()
-            and $source->getCause() !== EntityDamageEvent::CAUSE_MAGIC
-            and $source->getCause() !== EntityDamageEvent::CAUSE_SUICIDE
-            and $source->getCause() !== EntityDamageEvent::CAUSE_VOID
-        ){
-            $source->setCancelled();
-        }elseif($this->allowFlight and $source->getCause() === EntityDamageEvent::CAUSE_FALL){
+		if($this->isCreative()
+			and $source->getCause() !== EntityDamageEvent::CAUSE_MAGIC
+			and $source->getCause() !== EntityDamageEvent::CAUSE_SUICIDE
+			and $source->getCause() !== EntityDamageEvent::CAUSE_VOID
+		){
+			$source->setCancelled();
+		}elseif($this->allowFlight and $source->getCause() === EntityDamageEvent::CAUSE_FALL){
 			$source->setCancelled();
 		}
 
