@@ -74,7 +74,7 @@ class Attribute{
 
     public function setMaxValue($maxValue){
         if($maxValue < $this->getMinValue()){
-            throw new \InvalidArgumentException("Value $maxValue is bigger than the minValue!");
+            throw new \InvalidArgumentException("Value $maxValue is smaller than the minValue!");
         }
 
         $this->maxValue = $maxValue;
