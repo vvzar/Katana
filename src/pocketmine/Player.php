@@ -1678,7 +1678,7 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 		];
 
 		$slot = $this->inventory->getItemInHand();
-		if(isset($items[$slot->getId()])) {
+		if(isset($items[$slot->getId()]) && $this->isAlive()) {
 			if($this->getFood() < 20 and isset($items[$slot->getId()])){
 				$this->server->getPluginManager()->callEvent($ev = new PlayerItemConsumeEvent($this, $slot));
 				if($ev->isCancelled()){
