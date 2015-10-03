@@ -16,7 +16,20 @@
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
  *
- *
+ * This object pulls everything together.
+ * Instantiated by Pocketmine.php
+ * The constructor will
+ *      - loads properties
+ *      - instantiate a lot of objects,
+ *      - calls $this->start()
+ *  start()
+ *      - More intializing, including process control,
+ *      - calls tickProcessor()
+ * tickProcessor
+ *      - Loops here forever, calling tick();
+ * tick()
+ *      - This is what gets called over and over again.
+ *      - Handles player movement, chunk loading, game play.
 */
 
 /**
@@ -1370,6 +1383,7 @@ class Server{
 		return self::$instance;
 	}
 
+	/////////////////////////////////////////////// CONSTRUCTOR /////////////////////////////////////////////////////////////////
 	/**
 	 * @param \ClassLoader    $autoloader
 	 * @param \ThreadedLogger $logger
@@ -1948,6 +1962,7 @@ class Server{
 		return $this->queryRegenerateTask;
 	}
 
+	///////////////////////////////////////////////  START //////////////////////////////////////////////////////////////////////
 	/**
 	 * Starts the Katana server and starts processing ticks and packets
 	 */
@@ -1975,7 +1990,7 @@ class Server{
 		}
 		$this->katana->console->system(Terminal::$COLOR_WHITE . "Done (" . round(microtime(true) - \pocketmine\START_TIME, 3) . "s)! " . Terminal::$COLOR_GRAY . "For help, type \"help\" or \"?\"");
 
-		$this->tickProcessor();
+		$this->tickProcessor();   // Will loop forever here.
 		$this->forceShutdown();
 
 		gc_collect_cycles();
@@ -2091,6 +2106,8 @@ class Server{
 		return [];
 	}
 
+	////////////////////////////////////////////////////////  TICK PROCESSOR ////////////////////////////////////////////////////
+	// Loop here forever
 	private function tickProcessor(){
 		$this->nextTick = microtime(true);
 		while($this->isRunning){
@@ -2316,8 +2333,10 @@ class Server{
 	}
 
 
+	/////////////////////////////////////////////////////////////////////  TICK /////////////////////////////////////////////////
 	/**
-	 * Tries to execute a server tick
+	 * Tries to execute a server tick.
+	 * This is what processes player movements, loads chunks, etc.
 	 */
 	private function tick(){
 		$tickTime = microtime(true);
