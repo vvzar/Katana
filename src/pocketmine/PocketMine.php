@@ -16,8 +16,7 @@
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
  * 
- * Uses the BaseClassLoader class to load all required objects.
- * Instantiates a server.  (See server.php)
+ *
 */
 
 namespace {
@@ -476,7 +475,6 @@ namespace pocketmine {
 	}
 
 	ThreadManager::init();
-	// Instantiates the server object.
 	$server = new Server($autoloader, $logger, \pocketmine\PATH, \pocketmine\DATA, \pocketmine\PLUGIN_PATH);
 
 	$server->getKatana()->console->system("Stopping other threads");

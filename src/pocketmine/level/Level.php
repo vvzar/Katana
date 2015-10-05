@@ -2733,7 +2733,7 @@ class Level implements ChunkManager, Metadatable{
 	}
 
 	public function unloadChunks($force = false){
-		/*if(count($this->unloadQueue) > 0){
+		if(count($this->unloadQueue) > 0){
 			$maxUnload = 96;
 			$now = microtime(true);
 			foreach($this->unloadQueue as $index => $time){
@@ -2753,7 +2753,7 @@ class Level implements ChunkManager, Metadatable{
 					--$maxUnload;
 				}
 			}
-		}*/
+		}
 	}
 
 	public function setMetadata($metadataKey, MetadataValue $metadataValue){
