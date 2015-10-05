@@ -1275,23 +1275,21 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 	}
 
 	protected function checkGroundState($movX, $movY, $movZ, $dx, $dy, $dz){
-		if(!$this->onGround or $movY != 0){
+		if(!$this->onGround or $movY != 0) {
 			$bb = clone $this->boundingBox;
 			$bb->maxY = $bb->minY + 0.5;
 			$bb->minY -= 1;
-			if(count($this->level->getCollisionBlocks($bb, true)) > 0){
-				$this->onGround = true;
-			}else{
-				$this->onGround = false;
-			}
+			$this->onGround = true;
 		}
 		$this->isCollided = $this->onGround;
 	}
 
 	protected function checkBlockCollision(){
+		/*
 		foreach($this->getBlocksAround() as $block){
 			$block->onEntityCollide($this);
 		}
+		*/
 	}
 
 	protected function checkNearEntities($tickDiff){
@@ -1575,11 +1573,11 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 					}
 					$this->inAirTicks = 0;
 				}else{
+					/*
 					if(!$this->allowFlight and $this->inAirTicks > 10 and !$this->isSleeping() and $this->getDataProperty(self::DATA_NO_AI) !== 1){
 						$expectedVelocity = (-$this->gravity) / $this->drag - ((-$this->gravity) / $this->drag) * exp(-$this->drag * ($this->inAirTicks - $this->startAirTicks));
 						$diff = ($this->speed->y - $expectedVelocity) ** 2;
 
-						/*
 						if(!$this->hasEffect(Effect::JUMP) and $diff > 0.6 and $expectedVelocity < $this->speed->y and !$this->server->getAllowFlight()){
 							if($this->inAirTicks < 100){
 								$this->setMotion(new Vector3(0, $expectedVelocity, 0));
@@ -1588,8 +1586,8 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 								return false;
 							}
 						}
-						*/
 					}
+					*/
 
 					++$this->inAirTicks;
 				}
@@ -1680,7 +1678,7 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 		];
 
 		$slot = $this->inventory->getItemInHand();
-		if(isset($items[$slot->getId()])) {
+		if(isset($items[$slot->getId()]) && $this->isAlive()) {
 			if($this->getFood() < 20 and isset($items[$slot->getId()])){
 				$this->server->getPluginManager()->callEvent($ev = new PlayerItemConsumeEvent($this, $slot));
 				if($ev->isCancelled()){
@@ -2244,7 +2242,6 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 				}
 				break;
 			case ProtocolInfo::PLAYER_ACTION_PACKET:
-				$this->eatFoodInHand();
 				if($this->spawned === false or $this->blocked === true or (!$this->isAlive() and $packet->action !== PlayerActionPacket::ACTION_RESPAWN and $packet->action !== PlayerActionPacket::ACTION_DIMENSION_CHANGE)){
 					break;
 				}

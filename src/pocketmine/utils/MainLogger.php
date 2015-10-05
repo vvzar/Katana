@@ -217,7 +217,7 @@ class MainLogger extends \AttachableThreadedLogger{
 			$this->attachment->call($level, $message);
 		}
 
-		$this->logStream[] = date("Y-m-d", $now) . " " . $cleanMessage . "\n";
+//		$this->logStream[] = date("Y-m-d", $now) . " " . $cleanMessage . "\n";
 		if($this->logStream->count() === 1){
 			$this->synchronized(function(){
 				$this->notify();
