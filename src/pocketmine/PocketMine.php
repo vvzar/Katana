@@ -15,7 +15,9 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
+ *  Uses the BaseClassLoader class to load all required objects.
+ * Instantiates a server.  (See server.php)
  *
 */
 

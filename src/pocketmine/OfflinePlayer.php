@@ -16,6 +16,8 @@
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
  *
+ * When a player is not online and you try to get their user name, this class is returned.
+ * Would be called by a plug in.
  *
 */
 

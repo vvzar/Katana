@@ -25,7 +25,8 @@ use pocketmine\event\TranslationContainer;
 use pocketmine\utils\TextFormat;
 
 /**
- * Handles the achievement list and a bit more
+ * Messages for when a player does something for the first time.
+ * sent to the individual player but not broadcast.
  */
 abstract class Achievement{
 	/**

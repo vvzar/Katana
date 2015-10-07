@@ -16,6 +16,7 @@
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
  *
+ * Tries to prevent memory leaks.
  *
 */
 

@@ -16,6 +16,11 @@
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
  *
+ * Handles packets.
+ * Fires events.
+ * Stores metadata about the player.
+ * Abtracts networking related functions-- that is, instead of calling the networking apis directly, you
+ * call the method on the player.
  *
 */
 
