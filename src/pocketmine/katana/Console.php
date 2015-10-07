@@ -15,6 +15,10 @@ namespace pocketmine\katana;
 
 use pocketmine\utils\Terminal;
 
+/*
+ * Replacement logger designed for readability instead of verbosity
+ */
+
 class Console extends KatanaModule {
 	public function init() {
 		parent::setName("console");

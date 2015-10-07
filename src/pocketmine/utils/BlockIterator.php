@@ -26,7 +26,8 @@ use pocketmine\level\Level;
 use pocketmine\math\Vector3;
 
 /**
- * This class performs ray tracing and iterates along blocks on a line
+ * This class performs ray tracing and iterates along blocks on a line.
+ * Useful for anti-hacks and hitbox calculation.
  */
 class BlockIterator implements \Iterator{
 

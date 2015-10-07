@@ -27,6 +27,11 @@ use pocketmine\event\Timings;
 use pocketmine\scheduler\GarbageCollectionTask;
 use pocketmine\utils\Utils;
 
+/*
+ * Guards against the server using too much memory by clearing caches, running garbage collectors,
+ * and more as necessary if the servers' performance is deterioriating. Main thred memory limit and
+ * total is seperate, the latter might be higher if async compression is enabled (pocketmine.yml).
+ */
 
 class MemoryManager{
 

@@ -146,8 +146,11 @@ use pocketmine\utils\TextFormat;
 use raklib\Binary;
 
 /**
- * Main class that handles networking, recovery, and packet sending to the server part
+ * Handles incoming packets within the context of a particular player, and abstracts away the creation
+ * of packets to interact with the player. A lot of events are spawned here, and is a central endpoint
+ * for plugins when dealing with players.
  */
+
 class Player extends Human implements CommandSender, InventoryHolder, ChunkLoader, IPlayer{
 
 	const SURVIVAL = 0;

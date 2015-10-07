@@ -28,6 +28,11 @@ use pocketmine\metadata\MetadataValue;
 use pocketmine\nbt\tag\Compound;
 use pocketmine\plugin\Plugin;
 
+/*
+ * Class that gets returned by Server::getPlayer() if you get a player by username or ID that is no longer connected
+ * to the server, through a plugin. Contains some metadata but no interactive functions.
+ */
+
 class OfflinePlayer implements IPlayer{
 
 	private $name;

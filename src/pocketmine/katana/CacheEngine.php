@@ -15,6 +15,10 @@ namespace pocketmine\katana;
 
 use pocketmine\utils\Terminal;
 
+/*
+ * For now this just reads the config, for actual implementation see Level.php
+ */
+
 class CacheEngine extends KatanaModule {
 	public $cacheDisk = true;
 

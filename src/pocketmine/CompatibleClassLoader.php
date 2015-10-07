@@ -21,6 +21,10 @@
 
 namespace pocketmine;
 
+/*
+ * No longer used, see spl's class loader.
+*/
+
 class CompatibleClassLoader extends \BaseClassLoader{
 
 	/**

@@ -28,6 +28,11 @@ use pocketmine\utils\Utils;
 use pocketmine\utils\VersionString;
 use raklib\RakLib;
 
+/*
+ * Called when a critical exception occurs that the server can't continue past.
+ * Saved to a file or optionally sent to a server (see pocketmine.yml configuration options)
+ */
+
 class CrashDump{
 
 	/** @var Server */

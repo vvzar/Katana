@@ -22,7 +22,10 @@
 namespace pocketmine\utils;
 
 /**
- * Class used to handle Minecraft chat format, and convert it to other formats like ANSI or HTML
+ * Class used to handle Minecraft chat format, and convert it to other formats like ANSI or HTML.
+ * Note: The version on PocketMine/master breaks chat colors on a lot of consoles including with
+ * the PHP builds we use on our game servers, so we've rolled back to an older version even though
+ * the new one is layed out better.
  */
 abstract class TextFormat{
 	const ESCAPE = "\xc2\xa7"; //§

@@ -27,7 +27,7 @@ use pocketmine\Server;
 /**
  * Class Config
  *
- * Config Class for simple config manipulation of multiple formats.
+ * Handles the parsing of multiple types of configuration files, and abstracts methods to modify & read them
  */
 class Config{
 	const DETECT = -1; //Detect by file extension

@@ -36,6 +36,10 @@ use pocketmine\network\protocol\AddPlayerPacket;
 use pocketmine\network\protocol\RemovePlayerPacket;
 use pocketmine\Player;
 
+/*
+ * Player-specific entity stuff, like skins
+ */
+
 class Human extends Creature implements ProjectileSource, InventoryHolder{
 
 	const DATA_PLAYER_FLAG_SLEEP = 1;

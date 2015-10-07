@@ -33,8 +33,8 @@
 */
 
 /**
- * Katana is the Minecraft: PE multiplayer server software
- * Homepage: http://www.pocketmine.net/
+ * Katana is the Minecraft: PE multiplayer server software, a fork of PocketMine.
+ * Homepage: http://www.pocketmine.net/ or http://github.com/williamtdr/PocketMine
  */
 namespace pocketmine;
 

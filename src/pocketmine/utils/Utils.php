@@ -20,7 +20,7 @@
 */
 
 /**
- * Various Utilities used around the code
+ * Common Utilities used around the code
  */
 namespace pocketmine\utils;
 use pocketmine\ThreadManager;

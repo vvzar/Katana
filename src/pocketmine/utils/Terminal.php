@@ -21,6 +21,10 @@
 
 namespace pocketmine\utils;
 
+/*
+* Translates codes from TextFormat to display on the server console
+*/
+
 abstract class Terminal{
 	public static $FORMAT_BOLD = "";
 	public static $FORMAT_OBFUSCATED = "";

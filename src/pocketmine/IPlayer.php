@@ -23,6 +23,10 @@ namespace pocketmine;
 
 use pocketmine\permission\ServerOperator;
 
+/*
+ * Basic metadata about a player, pretty pointless abstract class
+ */
+
 interface IPlayer extends ServerOperator{
 
 	/**

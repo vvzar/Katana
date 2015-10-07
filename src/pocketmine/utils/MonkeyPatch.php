@@ -21,6 +21,8 @@
 
 namespace pocketmine\utils;
 
+// I dunno we just wanted a class with Monkey in the title
+
 class MonkeyPatch{
 	public function __construct(){
 

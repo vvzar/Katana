@@ -24,6 +24,10 @@ namespace pocketmine\level\sound;
 use pocketmine\math\Vector3;
 use pocketmine\network\protocol\DataPacket;
 
+/*
+ * Sounds are played at a location to a group of player(s)
+ */
+
 abstract class Sound extends Vector3{
 	
 	/**

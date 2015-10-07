@@ -16,8 +16,9 @@
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
  *
- *  Uses the BaseClassLoader class to load all required objects.
- * Instantiates a server.  (See server.php)
+ * Handles server startup options and instantiates the server. Deals with some of the
+ * messier PHP-related issues like timezones, threading and some top-level debugging
+ * functions.
  *
 */
 

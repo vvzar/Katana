@@ -20,7 +20,7 @@
 */
 
 /**
- * Various Utilities used around the code
+ * Common functions used to decode and encode packets for the Minecraft PE client.
  */
 namespace pocketmine\utils;
 use pocketmine\entity\Entity;

@@ -22,7 +22,8 @@
 namespace pocketmine;
 
 /**
- * This class must be extended by all custom threading classes
+ * This class must be extended by all custom threading classes.
+ * Depends on pthreads PHP threading library by krakjoe.
  */
 abstract class Thread extends \Thread{
 

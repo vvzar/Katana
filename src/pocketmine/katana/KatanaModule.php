@@ -15,6 +15,10 @@ namespace pocketmine\katana;
 
 use pocketmine\utils\Terminal;
 
+/*
+ * Abstraction layer for modules that implement Katana's modified functionality relative to PocketMine
+ */
+
 class KatanaModule {
 	/** @var Katana */
 	private $katana;

@@ -25,6 +25,11 @@
  */
 namespace pocketmine\tile;
 
+
+/*
+ * A tile is a block with a significant amount of metadata associated with it.
+ * Chests & signs are tiles because of their respective inventory and text data.
+ */
 use pocketmine\event\Timings;
 use pocketmine\level\format\Chunk;
 use pocketmine\level\format\FullChunk;

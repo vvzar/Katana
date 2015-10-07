@@ -13,6 +13,10 @@
 
 namespace pocketmine\katana;
 
+/*
+* Sends a packet to redirect a player if the current server can't handle them.
+*/
+
 class RedirectEngine extends KatanaModule {
 	public $onFull = false;
 	public $onThreshold = 18;

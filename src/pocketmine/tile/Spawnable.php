@@ -28,6 +28,10 @@ use pocketmine\network\Network;
 use pocketmine\network\protocol\TileEntityDataPacket;
 use pocketmine\Player;
 
+/*
+ * Tiles whose contents can be modified and sent to players
+ */
+
 abstract class Spawnable extends Tile{
 
 	public function spawnTo(Player $player){

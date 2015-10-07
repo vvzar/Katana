@@ -63,6 +63,10 @@ use pocketmine\plugin\Plugin;
 use pocketmine\Server;
 use pocketmine\utils\ChunkException;
 
+/*
+ * Entities are objects with metadata that move around in the game world.
+ */
+
 abstract class Entity extends Location implements Metadatable{
 
 

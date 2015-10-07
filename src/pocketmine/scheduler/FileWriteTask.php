@@ -21,6 +21,10 @@
 
 namespace pocketmine\scheduler;
 
+/*
+* Handles asynchronously saving files to disk because PHP is bad at that
+*/
+
 class FileWriteTask extends AsyncTask{
 
 	private $path;

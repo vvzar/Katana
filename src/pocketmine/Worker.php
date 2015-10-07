@@ -22,7 +22,8 @@
 namespace pocketmine;
 
 /**
- * This class must be extended by all custom threading classes
+ * This class must be extended by all custom threading classes.
+ * Loads classes for async tasks and kills threads nicely.
  */
 abstract class Worker extends \Worker{
 

@@ -108,6 +108,10 @@ use pocketmine\level\particle\DestroyBlockParticle;
 use pocketmine\utils\Terminal;
 use raklib\Binary;
 
+/*
+ * Generic class for ticking, reading and modifying levels. Katana's chunk caching is done here.
+ */
+
 #include <rules/Level.h>
 
 class Level implements ChunkManager, Metadatable{
@@ -343,6 +347,7 @@ class Level implements ChunkManager, Metadatable{
 		$this->temporalVector = new Vector3(0, 0, 0);
 		$this->tickRate = 1;
 
+		// Initialize chunk cache folder
 		if($this->server->getKatana()->getProperty("cache.save-to-disk", true) && !file_exists("chunk_cache/" . $this->getName() . "/")){
 			mkdir("chunk_cache/" . $this->getName() . "/", 0777);
 		}
@@ -2235,6 +2240,7 @@ class Level implements ChunkManager, Metadatable{
 	}
 
 	public function loadChunkFromDisk($x, $z) {
+		// Get chunk from the disk if it's already saved there, loads payload into ram
 		if(isset($this->chunkCache[$x.":".$z])) return true;
 		if(!$this->server->getKatana()->getProperty("cache.save-to-disk", true)) return false;
 
@@ -2258,8 +2264,10 @@ class Level implements ChunkManager, Metadatable{
 				}
 				Level::getXZ($index, $x, $z);
 				$this->chunkSendTasks[$index] = true;
+				// Gets chunks from disk or cache if it can
 				if(isset($this->chunkCache[$x.":".$z]) or $this->loadChunkFromDisk($x, $z)) {
 					foreach($players as $player) {
+						// Found chunk? Call special function to send just the payload
 						$player->sendBatchedChunk($x, $z, $this->chunkCache[$x.":".$z]);
 					}
 					unset($this->chunkSendQueue[$index]);
@@ -2280,6 +2288,7 @@ class Level implements ChunkManager, Metadatable{
 	}
 
 	public function saveChunkToDisk($x, $z, $payload, $ordering = FullChunkDataPacket::ORDER_COLUMNS) {
+		// When the payload of the chunk has been calculated it, save it if possible to save future CPU cycles
 		/** @var Player $player */
 		if(file_exists("chunk_cache/" . $this->getName() . "/" . $x . "_" . $z . ".dat")) {
 			$this->loadChunkFromDisk($x, $z);
@@ -2293,6 +2302,8 @@ class Level implements ChunkManager, Metadatable{
 		$pk->data = $payload;
 		$pk->encode();
 
+		// all chunks are zlib_encoded, level is arbitrary but 6 is a good match between device CPU power needed
+		// and bandwidth
 		$data = zlib_encode(Binary::writeInt(strlen($pk->buffer)) . $pk->buffer, ZLIB_ENCODING_DEFLATE, 6);
 		$this->chunkCache[$x.":".$z] = $data;
 

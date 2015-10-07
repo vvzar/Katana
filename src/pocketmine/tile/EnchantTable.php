@@ -25,9 +25,11 @@ use pocketmine\nbt\tag\Compound;
 use pocketmine\nbt\tag\Int;
 use pocketmine\nbt\tag\String;
 
+/*
+ * Not actually fully implemented yet
+ */
+
 class EnchantTable extends Spawnable implements Nameable{
-
-
 	public function getName(){
 		return isset($this->namedtag->CustomName) ? $this->namedtag->CustomName->getValue() : "Enchanting Table";
 	}

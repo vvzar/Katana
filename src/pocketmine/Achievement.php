@@ -25,8 +25,8 @@ use pocketmine\event\TranslationContainer;
 use pocketmine\utils\TextFormat;
 
 /**
- * Messages for when a player does something for the first time.
- * sent to the individual player but not broadcast.
+ * Messages that are sent to players when they do things for the first time,
+ * on a milestone-level.
  */
 abstract class Achievement{
 	/**

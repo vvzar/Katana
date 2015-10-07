@@ -17,6 +17,10 @@ use pocketmine\Server;
 use pocketmine\utils\Config;
 use pocketmine\utils\Terminal;
 
+/*
+ * Handles Katana's modified functionality and provides an abstraction layer for its modules.
+ */
+
 class Katana {
 	/** @var Server */
 	private $server;

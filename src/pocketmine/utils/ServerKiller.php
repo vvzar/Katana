@@ -23,6 +23,11 @@ namespace pocketmine\utils;
 
 use pocketmine\Thread;
 
+/*
+ * Instantiated by server object so when the server locks up when shutting down (and it does!)
+ * it can be force killed and restart.
+ */
+
 class ServerKiller extends Thread{
 
 	public $time;

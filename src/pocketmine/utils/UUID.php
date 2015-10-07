@@ -21,6 +21,12 @@
 
 namespace pocketmine\utils;
 
+/*
+ * Unique ID used as a key to identify the player. Will be used more in the future
+ * once online authentication is implemented to identify the client independent of
+ * their username.
+ */
+
 class UUID{
 
 	private $parts = [0, 0, 0, 0];

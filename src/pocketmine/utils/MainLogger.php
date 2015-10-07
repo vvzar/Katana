@@ -25,6 +25,11 @@ use LogLevel;
 use pocketmine\Thread;
 use pocketmine\Worker;
 
+/*
+ * Logs messages to the console and disk (asynchronously). Modified a bit
+ * by Katana, which disables logging by default - can be modified in katana.yml.
+ */
+
 class MainLogger extends \AttachableThreadedLogger{
 	protected $logFile;
 	protected $logStream;

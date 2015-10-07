@@ -21,6 +21,10 @@
 
 namespace pocketmine;
 
+/*
+ * Spawns and keeps track of a server's async threads.
+ */
+
 class ThreadManager extends \Threaded{
 
 	/** @var ThreadManager */
