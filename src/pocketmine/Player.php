@@ -741,7 +741,7 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 			++$count;
 
 			$this->usedChunks[$index] = false;
-			$this->level->registerChunkLoader($this, $X, $Z, false);
+			$this->level->registerChunkLoader($this, $X, $Z, true);
 
 			if(!$this->level->populateChunk($X, $Z)){
 				if($this->spawned and $this->teleportPosition === null){
