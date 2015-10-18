@@ -1653,7 +1653,7 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 	protected $eatCoolDown = 0;
 
 	public function eatFoodInHand() {
-		if($this->eatCoolDown + 2000 >= time()) {
+		if($this->eatCoolDown + 2000 >= time() || !$this->spawned) {
 			return;
 		}
 
@@ -2252,7 +2252,6 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 				}
 				break;
 			case ProtocolInfo::PLAYER_ACTION_PACKET:
-				$this->eatFoodInHand();
 				if($this->spawned === false or $this->blocked === true or (!$this->isAlive() and $packet->action !== PlayerActionPacket::ACTION_RESPAWN and $packet->action !== PlayerActionPacket::ACTION_DIMENSION_CHANGE)){
 					break;
 				}
