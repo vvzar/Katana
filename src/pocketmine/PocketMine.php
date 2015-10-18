@@ -143,7 +143,7 @@ namespace pocketmine {
 	date_default_timezone_set("UTC");
 
 	if(!file_exists("katana.yml")){
-		$content = file_get_contents("src/pocketmine/resources/katana.yml");
+		$content = file_get_contents(__DIR__ . "/resources/katana.yml");
 		@file_put_contents("katana.yml", $content);
 	}
 
