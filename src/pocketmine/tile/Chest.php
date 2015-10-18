@@ -37,6 +37,10 @@ use pocketmine\nbt\tag\String;
 
 class Chest extends Spawnable implements InventoryHolder, Container, Nameable{
 
+    use ContainsItemsInSlotsTrait;
+
+    const SIZE = 27;
+
 	/** @var ChestInventory */
 	protected $inventory;
 	/** @var DoubleChestInventory */
@@ -81,69 +85,7 @@ class Chest extends Spawnable implements InventoryHolder, Container, Nameable{
 	 * @return int
 	 */
 	public function getSize(){
-		return 27;
-	}
-
-	/**
-	 * @param $index
-	 *
-	 * @return int
-	 */
-	protected function getSlotIndex($index){
-		foreach($this->namedtag->Items as $i => $slot){
-			if((int) $slot["Slot"] === (int) $index){
-				return (int) $i;
-			}
-		}
-
-		return -1;
-	}
-
-	/**
-	 * This method should not be used by plugins, use the Inventory
-	 *
-	 * @param int $index
-	 *
-	 * @return Item
-	 */
-	public function getItem($index){
-		$i = $this->getSlotIndex($index);
-		if($i < 0){
-			return Item::get(Item::AIR, 0, 0);
-		}else{
-			return NBT::getItemHelper($this->namedtag->Items[$i]);
-		}
-	}
-
-	/**
-	 * This method should not be used by plugins, use the Inventory
-	 *
-	 * @param int  $index
-	 * @param Item $item
-	 *
-	 * @return bool
-	 */
-	public function setItem($index, Item $item){
-		$i = $this->getSlotIndex($index);
-
-		$d = NBT::putItemHelper($item, $index);
-
-		if($item->getId() === Item::AIR or $item->getCount() <= 0){
-			if($i >= 0){
-				unset($this->namedtag->Items[$i]);
-			}
-		}elseif($i < 0){
-			for($i = 0; $i <= $this->getSize(); ++$i){
-				if(!isset($this->namedtag->Items[$i])){
-					break;
-				}
-			}
-			$this->namedtag->Items[$i] = $d;
-		}else{
-			$this->namedtag->Items[$i] = $d;
-		}
-
-		return true;
+        return static::SIZE;
 	}
 
 	/**
