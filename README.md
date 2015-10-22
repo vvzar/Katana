@@ -15,6 +15,7 @@ Katana is a fork of [PocketMine-MP](http://github.com/PocketMine/PocketMine-MP) 
     - Katana can redirect players when no slots are available or the server is lagging
 
 ### Warnings & Intentional Incompatibility
+- Using Katana on Windows is not supported.
 - Katana does not support leveldb.
 - Katana does not use PocketMine's auto-updating or stats tracking systems.
 - Katana will only generate empty chunks for regions of the world that are not set.
