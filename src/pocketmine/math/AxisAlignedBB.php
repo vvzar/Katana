@@ -243,86 +243,118 @@ class AxisAlignedBB{
 	}
 
 	public function calculateIntercept(Vector3 $pos1, Vector3 $pos2){
-		$v1 = $pos1->getIntermediateWithXValue($pos2, $this->minX);
-		$v2 = $pos1->getIntermediateWithXValue($pos2, $this->maxX);
-		$v3 = $pos1->getIntermediateWithYValue($pos2, $this->minY);
-		$v4 = $pos1->getIntermediateWithYValue($pos2, $this->maxY);
-		$v5 = $pos1->getIntermediateWithZValue($pos2, $this->minZ);
-		$v6 = $pos1->getIntermediateWithZValue($pos2, $this->maxZ);
-
-		if($v1 !== null and !$this->isVectorInYZ($v1)){
-			$v1 = null;
-		}
-
-		if($v2 !== null and !$this->isVectorInYZ($v2)){
-			$v2 = null;
-		}
-
-		if($v3 !== null and !$this->isVectorInXZ($v3)){
-			$v3 = null;
-		}
-
-		if($v4 !== null and !$this->isVectorInXZ($v4)){
-			$v4 = null;
-		}
-
-		if($v5 !== null and !$this->isVectorInXY($v5)){
-			$v5 = null;
-		}
-
-		if($v6 !== null and !$this->isVectorInXY($v6)){
-			$v6 = null;
-		}
-
-		$vector = null;
-
-
-		if($v1 !== null and ($vector === null or $pos1->distanceSquared($v1) < $pos1->distanceSquared($vector))){
-			$vector = $v1;
-		}
-
-		if($v2 !== null and ($vector === null or $pos1->distanceSquared($v2) < $pos1->distanceSquared($vector))){
-			$vector = $v2;
-		}
-
-		if($v3 !== null and ($vector === null or $pos1->distanceSquared($v3) < $pos1->distanceSquared($vector))){
-			$vector = $v3;
-		}
-
-		if($v4 !== null and ($vector === null or $pos1->distanceSquared($v4) < $pos1->distanceSquared($vector))){
-			$vector = $v4;
-		}
-
-		if($v5 !== null and ($vector === null or $pos1->distanceSquared($v5) < $pos1->distanceSquared($vector))){
-			$vector = $v5;
-		}
-
-		if($v6 !== null and ($vector === null or $pos1->distanceSquared($v6) < $pos1->distanceSquared($vector))){
-			$vector = $v6;
-		}
-
-		if($vector === null){
-			return null;
-		}
-
-		$f = -1;
-
-		if($vector === $v1){
-			$f = 4;
-		}elseif($vector === $v2){
-			$f = 5;
-		}elseif($vector === $v3){
-			$f = 0;
-		}elseif($vector === $v4){
-			$f = 1;
-		}elseif($vector === $v5){
-			$f = 2;
-		}elseif($vector === $v6){
-			$f = 3;
-		}
-
+        $intermediateVectors = $this->getIntermediateVectorsArray($pos1, $pos2);
+		$vector = $this->calculateInterceptVector($pos1, $intermediateVectors);
+        if($vector === null){
+            return null;
+        }
+        $f = $this->calculateInterceptSide($vector, $intermediateVectors);
 		return MovingObjectPosition::fromBlock(0, 0, 0, $f, $vector);
 	}
+
+    /**
+     *
+     * Calculates interception side
+     * @param Vector3 $vector
+     * @param Vector3[] $intermediateVectors
+     *
+     * @return integer
+     */
+    public function calculateInterceptSide(Vector3 $vector, array $intermediateVectors)
+    {
+        $f = -1;
+        if($vector === $intermediateVectors['v1']){
+            $f = 4;
+        }elseif($vector === $intermediateVectors['v2']){
+            $f = 5;
+        }elseif($vector === $intermediateVectors['v3']){
+            $f = 0;
+        }elseif($vector === $intermediateVectors['v4']){
+            $f = 1;
+        }elseif($vector === $intermediateVectors['v5']){
+            $f = 2;
+        }elseif($vector === $intermediateVectors['v6']){
+            $f = 3;
+        }
+        return $f;
+    }
+
+    /**
+     *
+     * Calculates interception vector
+     * @param Vector3 $pos1
+     * @param Vector3[] $intermediateVectors
+     *
+     * @return null|Vector3
+     */
+    public function calculateInterceptVector(Vector3 $pos1, array &$intermediateVectors)
+    {
+        if($intermediateVectors['v1'] !== null and !$this->isVectorInYZ($intermediateVectors['v1'])){
+            $intermediateVectors['v1'] = null;
+        }
+
+        if($intermediateVectors['v2'] !== null and !$this->isVectorInYZ($intermediateVectors['v2'])){
+            $intermediateVectors['v2'] = null;
+        }
+
+        if($intermediateVectors['v3'] !== null and !$this->isVectorInXZ($intermediateVectors['v3'])){
+            $intermediateVectors['v3'] = null;
+        }
+
+        if($intermediateVectors['v4'] !== null and !$this->isVectorInXZ($intermediateVectors['v4'])){
+            $intermediateVectors['v4'] = null;
+        }
+
+        if($intermediateVectors['v5'] !== null and !$this->isVectorInXY($intermediateVectors['v5'])){
+            $intermediateVectors['v5'] = null;
+        }
+
+        if($intermediateVectors['v6'] !== null and !$this->isVectorInXY($intermediateVectors['v6'])){
+            $intermediateVectors['v6'] = null;
+        }
+
+        $vector = null;
+        if($intermediateVectors['v1'] !== null and ($vector === null or $pos1->distanceSquared($intermediateVectors['v1']) < $pos1->distanceSquared($vector))){
+            $vector = $intermediateVectors['v1'];
+        }
+        if($intermediateVectors['v2'] !== null and ($vector === null or $pos1->distanceSquared($intermediateVectors['v2']) < $pos1->distanceSquared($vector))){
+            $vector = $intermediateVectors['v2'];
+        }
+        if($intermediateVectors['v3'] !== null and ($vector === null or $pos1->distanceSquared($intermediateVectors['v3']) < $pos1->distanceSquared($vector))){
+            $vector = $intermediateVectors['v3'];
+        }
+        if($intermediateVectors['v4'] !== null and ($vector === null or $pos1->distanceSquared($intermediateVectors['v4']) < $pos1->distanceSquared($vector))){
+            $vector = $intermediateVectors['v4'];
+        }
+        if($intermediateVectors['v5'] !== null and ($vector === null or $pos1->distanceSquared($intermediateVectors['v5']) < $pos1->distanceSquared($vector))){
+            $vector = $intermediateVectors['v5'];
+        }
+        if($intermediateVectors['v6'] !== null and ($vector === null or $pos1->distanceSquared($intermediateVectors['v6']) < $pos1->distanceSquared($vector))){
+            $vector = $intermediateVectors['v6'];
+        }
+        return $vector;
+    }
+
+    /**
+     *
+     * Returns 6 intermediate vectors by positions
+     *
+     * @param Vector3 $pos1
+     * @param Vector3 $pos2
+     * @return Vector3[]
+     */
+    public function getIntermediateVectorsArray(Vector3 $pos1, Vector3 $pos2)
+    {
+        return [
+            'v1' => $pos1->getIntermediateWithXValue($pos2, $this->minX),
+            'v2' => $pos1->getIntermediateWithXValue($pos2, $this->maxX),
+            'v3' => $pos1->getIntermediateWithYValue($pos2, $this->minY),
+            'v4' => $pos1->getIntermediateWithYValue($pos2, $this->maxY),
+            'v5' => $pos1->getIntermediateWithZValue($pos2, $this->minZ),
+            'v6' => $pos1->getIntermediateWithZValue($pos2, $this->maxZ),
+        ];
+    }
+
 
 	public function __toString(){
 		return "AxisAlignedBB({$this->minX}, {$this->minY}, {$this->minZ}, {$this->maxX}, {$this->maxY}, {$this->maxZ})";

@@ -26,9 +26,13 @@ use pocketmine\entity\Entity;
 use pocketmine\level\format\FullChunk;
 use pocketmine\level\format\LevelProvider;
 use pocketmine\level\Level;
+use pocketmine\nbt\NBT;
+use pocketmine\nbt\tag\ByteArray;
 use pocketmine\nbt\tag\Compound;
+use pocketmine\nbt\tag\Enum;
 use pocketmine\Player;
 use pocketmine\tile\Tile;
+use pocketmine\utils\BinaryStream;
 
 
 abstract class BaseFullChunk implements FullChunk{
@@ -436,6 +440,50 @@ abstract class BaseFullChunk implements FullChunk{
 	public function toFastBinary(){
 		return $this->toBinary();
 	}
+
+    /**
+     * @param Compound $nbt
+     * @return NBT
+     */
+    protected function prepareChunkBinaryWriter(Compound $nbt)
+    {
+        $entities = [];
+
+        foreach($this->getEntities() as $entity){
+            if(!($entity instanceof Player) and !$entity->closed){
+                $entity->saveNBT();
+                $entities[] = $entity->namedtag;
+            }
+        }
+
+        $nbt->Entities = new Enum("Entities", $entities);
+        $nbt->Entities->setTagType(NBT::TAG_Compound);
+
+
+        $tiles = [];
+        foreach($this->getTiles() as $tile){
+            $tile->saveNBT();
+            $tiles[] = $tile->namedtag;
+        }
+
+        $nbt->TileEntities = new Enum("TileEntities", $tiles);
+        $nbt->TileEntities->setTagType(NBT::TAG_Compound);
+
+        $extraData = new BinaryStream();
+        $extraData->putInt(count($this->getBlockExtraDataArray()));
+        foreach($this->getBlockExtraDataArray() as $key => $value){
+            $extraData->putInt($key);
+            $extraData->putShort($value);
+        }
+
+        $nbt->ExtraData = new ByteArray("ExtraData", $extraData->getBuffer());
+
+        $writer = new NBT(NBT::BIG_ENDIAN);
+        $nbt->setName("Level");
+        $writer->setData(new Compound("", ["Level" => $nbt]));
+
+        return $writer;
+    }
 
 	public function isLightPopulated(){
 		return true;
