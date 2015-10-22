@@ -547,6 +547,23 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 
 		$this->creationTime = microtime(true);
 	}
+        
+        
+        
+        public function clearObject(){ 
+            $this->level->removeEntity($this);            
+            
+           
+        }
+        
+        public function __destruct(){    
+            parent::__destruct();
+            foreach (get_object_vars($this) as $clsVar => $a) {
+                if(is_object($this->{$clsVar}) && $clsVar != 'windows'){
+                    unset($this->{$clsVar});
+                }
+            }           
+        }
 
 	/**
 	 * @param string $achievementId
@@ -3125,7 +3142,7 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 	 * @param bool $notify
 	 */
 	public final function close($message = "", $reason = "generic reason", $notify = true){
-
+                
 		if($this->connected and !$this->closed){
 			if($notify and strlen((string) $reason) > 0){
 				$pk = new DisconnectPacket;

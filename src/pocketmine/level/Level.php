@@ -352,7 +352,24 @@ class Level implements ChunkManager, Metadatable{
 			mkdir("chunk_cache/" . $this->getName() . "/", 0777);
 		}
 	}
+        
+        public function clearCache($full = false){
+		if($full){
+			$this->chunkCache = [];
+			$this->blockCache = [];
+		}else{
+			if(count($this->chunkCache) > 768){
+				$this->chunkCache = [];
+			}
 
+			if(count($this->blockCache) > 2048){
+				$this->blockCache = [];
+			}
+
+		}
+
+	}       
+       
 	public function getTickRate(){
 		return $this->tickRate;
 	}
@@ -1205,10 +1222,7 @@ class Level implements ChunkManager, Metadatable{
 	 * @return Block
 	 */
 	public function getBlock(Vector3 $pos, $cached = true){
-		$index = Level::blockHash($pos->x, $pos->y, $pos->z);
-		if($cached and isset($this->blockCache[$index])){
-			return $this->blockCache[$index];
-		}elseif($pos->y >= 0 and $pos->y < 128 and isset($this->chunks[$chunkIndex = Level::chunkHash($pos->x >> 4, $pos->z >> 4)])){
+		if($pos->y >= 0 and $pos->y < 128 and isset($this->chunks[$chunkIndex = Level::chunkHash($pos->x >> 4, $pos->z >> 4)])){
 			$fullState = $this->chunks[$chunkIndex]->getFullBlock($pos->x & 0x0f, $pos->y & 0x7f, $pos->z & 0x0f);
 		}else{
 			$fullState = 0;
@@ -1221,7 +1235,7 @@ class Level implements ChunkManager, Metadatable{
 		$block->z = $pos->z;
 		$block->level = $this;
 
-		return $this->blockCache[$index] = $block;
+		return $block;
 	}
 
 	public function updateAllLight(Vector3 $pos){
