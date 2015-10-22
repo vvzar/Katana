@@ -26,7 +26,7 @@ class CacheEngine extends KatanaModule {
 		parent::setName("cache");
 		parent::writeLoaded();
 
-		if(parent::getKatana()->getProperty("cache.save-to-disk", true)) {
+		if(parent::getKatana()->getProperty("caching.save-to-disk", true)) {
 			parent::getKatana()->console->katana("Disk caching " . Terminal::$COLOR_GREEN . "enabled");
 			if(!file_exists(parent::getServer()->getDataPath() . "chunk_cache/")) mkdir(parent::getServer()->getDataPath() . "chunk_cache/", 0777);
 		} else {
