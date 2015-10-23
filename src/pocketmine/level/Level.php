@@ -2225,7 +2225,7 @@ class Level implements ChunkManager, Metadatable{
 	}
 
 	public function loadChunkFromDisk($x, $z) {
-		if(!$this->server->getKatana()->getProperty("cache.save-to-disk", true)){
+		if(!$this->server->getKatana()->getProperty("caching.save-to-disk", true)){
                     return false;
                 }
 
@@ -2289,7 +2289,7 @@ class Level implements ChunkManager, Metadatable{
 		// and bandwidth
 		$data = zlib_encode(Binary::writeInt(strlen($pk->buffer)) . $pk->buffer, ZLIB_ENCODING_DEFLATE, 6);
 
-		if(!$this->server->getKatana()->getProperty("cache.save-to-disk", true)) {
+		if(!$this->server->getKatana()->getProperty("caching.save-to-disk", true)) {
 			return $data;
 		}
 
