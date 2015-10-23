@@ -385,40 +385,7 @@ class Chunk extends BaseFullChunk{
 			$nbt->HeightMap = new IntArray("HeightMap", $this->getHeightMapArray());
 		}
 
-		$entities = [];
-
-		foreach($this->getEntities() as $entity){
-			if(!($entity instanceof Player) and !$entity->closed){
-				$entity->saveNBT();
-				$entities[] = $entity->namedtag;
-			}
-		}
-
-		$nbt->Entities = new Enum("Entities", $entities);
-		$nbt->Entities->setTagType(NBT::TAG_Compound);
-
-
-		$tiles = [];
-		foreach($this->getTiles() as $tile){
-			$tile->saveNBT();
-			$tiles[] = $tile->namedtag;
-		}
-
-		$nbt->TileEntities = new Enum("TileEntities", $tiles);
-		$nbt->TileEntities->setTagType(NBT::TAG_Compound);
-
-		$extraData = new BinaryStream();
-		$extraData->putInt(count($this->getBlockExtraDataArray()));
-		foreach($this->getBlockExtraDataArray() as $key => $value){
-			$extraData->putInt($key);
-			$extraData->putShort($value);
-		}
-
-		$nbt->ExtraData = new ByteArray("ExtraData", $extraData->getBuffer());
-
-		$writer = new NBT(NBT::BIG_ENDIAN);
-		$nbt->setName("Level");
-		$writer->setData(new Compound("", ["Level" => $nbt]));
+		$writer = $this->prepareChunkBinaryWriter($nbt);
 
 		return $writer->writeCompressed(ZLIB_ENCODING_DEFLATE, RegionLoader::$COMPRESSION_LEVEL);
 	}

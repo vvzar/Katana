@@ -117,68 +117,45 @@ class NBT{
 		return $item;
 	}
 
+    protected static function matchArray(\ArrayAccess $tag1, \ArrayAccess $tag2)
+    {
+        if($tag1->getName() !== $tag2->getName() or $tag1->getCount() !== $tag2->getCount()){
+            return false;
+        }
+
+        foreach($tag1 as $k => $v){
+            if(!($v instanceof Tag)){
+                continue;
+            }
+
+            if(!isset($tag2->{$k}) or !($tag2->{$k} instanceof $v)){
+                return false;
+            }
+
+            if($v instanceof Compound){
+                if(!self::matchTree($v, $tag2->{$k})){
+                    return false;
+                }
+            }elseif($v instanceof Enum){
+                if(!self::matchList($v, $tag2->{$k})){
+                    return false;
+                }
+            }else{
+                if($v->getValue() !== $tag2->{$k}->getValue()){
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
 	public static function matchList(Enum $tag1, Enum $tag2){
-		if($tag1->getName() !== $tag2->getName() or $tag1->getCount() !== $tag2->getCount()){
-			return false;
-		}
-
-		foreach($tag1 as $k => $v){
-			if(!($v instanceof Tag)){
-				continue;
-			}
-
-			if(!isset($tag2->{$k}) or !($tag2->{$k} instanceof $v)){
-				return false;
-			}
-
-			if($v instanceof Compound){
-				if(!self::matchTree($v, $tag2->{$k})){
-					return false;
-				}
-			}elseif($v instanceof Enum){
-				if(!self::matchList($v, $tag2->{$k})){
-					return false;
-				}
-			}else{
-				if($v->getValue() !== $tag2->{$k}->getValue()){
-					return false;
-				}
-			}
-		}
-
-		return true;
+		return self::matchArray($tag1, $tag2);
 	}
 
 	public static function matchTree(Compound $tag1, Compound $tag2){
-		if($tag1->getName() !== $tag2->getName() or $tag1->getCount() !== $tag2->getCount()){
-			return false;
-		}
-
-		foreach($tag1 as $k => $v){
-			if(!($v instanceof Tag)){
-				continue;
-			}
-
-			if(!isset($tag2->{$k}) or !($tag2->{$k} instanceof $v)){
-				return false;
-			}
-
-			if($v instanceof Compound){
-				if(!self::matchTree($v, $tag2->{$k})){
-					return false;
-				}
-			}elseif($v instanceof Enum){
-				if(!self::matchList($v, $tag2->{$k})){
-					return false;
-				}
-			}else{
-				if($v->getValue() !== $tag2->{$k}->getValue()){
-					return false;
-				}
-			}
-		}
-
-		return true;
+        return self::matchArray($tag1, $tag2);
 	}
 
 	public static function parseJSON($data, &$offset = 0){
@@ -216,41 +193,7 @@ class NBT{
 
 			$value = self::readValue($str, $offset, $type);
 
-			switch($type){
-				case NBT::TAG_Byte:
-					$data[$key] = new Byte($key, $value);
-					break;
-				case NBT::TAG_Short:
-					$data[$key] = new Short($key, $value);
-					break;
-				case NBT::TAG_Int:
-					$data[$key] = new Int($key, $value);
-					break;
-				case NBT::TAG_Long:
-					$data[$key] = new Long($key, $value);
-					break;
-				case NBT::TAG_Float:
-					$data[$key] = new Float($key, $value);
-					break;
-				case NBT::TAG_Double:
-					$data[$key] = new Double($key, $value);
-					break;
-				case NBT::TAG_ByteArray:
-					$data[$key] = new ByteArray($key, $value);
-					break;
-				case NBT::TAG_String:
-					$data[$key] = new Byte($key, $value);
-					break;
-				case NBT::TAG_Enum:
-					$data[$key] = new Enum($key, $value);
-					break;
-				case NBT::TAG_Compound:
-					$data[$key] = new Compound($key, $value);
-					break;
-				case NBT::TAG_IntArray:
-					$data[$key] = new IntArray($key, $value);
-					break;
-			}
+            self::bindValueWithType($key, $value, $data, $type);
 
 			$key++;
 		}
@@ -274,45 +217,50 @@ class NBT{
 			$key = self::readKey($str, $offset);
 			$value = self::readValue($str, $offset, $type);
 
-			switch($type){
-				case NBT::TAG_Byte:
-					$data[$key] = new Byte($key, $value);
-					break;
-				case NBT::TAG_Short:
-					$data[$key] = new Short($key, $value);
-					break;
-				case NBT::TAG_Int:
-					$data[$key] = new Int($key, $value);
-					break;
-				case NBT::TAG_Long:
-					$data[$key] = new Long($key, $value);
-					break;
-				case NBT::TAG_Float:
-					$data[$key] = new Float($key, $value);
-					break;
-				case NBT::TAG_Double:
-					$data[$key] = new Double($key, $value);
-					break;
-				case NBT::TAG_ByteArray:
-					$data[$key] = new ByteArray($key, $value);
-					break;
-				case NBT::TAG_String:
-					$data[$key] = new String($key, $value);
-					break;
-				case NBT::TAG_Enum:
-					$data[$key] = new Enum($key, $value);
-					break;
-				case NBT::TAG_Compound:
-					$data[$key] = new Compound($key, $value);
-					break;
-				case NBT::TAG_IntArray:
-					$data[$key] = new IntArray($key, $value);
-					break;
-			}
+			self::bindValueWithType($key, $value, $data, $type);
 		}
 
 		return $data;
 	}
+
+    public static function bindValueWithType($key, $value, &$data, $type)
+    {
+        switch($type){
+            case NBT::TAG_Byte:
+                $data[$key] = new Byte($key, $value);
+                break;
+            case NBT::TAG_Short:
+                $data[$key] = new Short($key, $value);
+                break;
+            case NBT::TAG_Int:
+                $data[$key] = new Int($key, $value);
+                break;
+            case NBT::TAG_Long:
+                $data[$key] = new Long($key, $value);
+                break;
+            case NBT::TAG_Float:
+                $data[$key] = new Float($key, $value);
+                break;
+            case NBT::TAG_Double:
+                $data[$key] = new Double($key, $value);
+                break;
+            case NBT::TAG_ByteArray:
+                $data[$key] = new ByteArray($key, $value);
+                break;
+            case NBT::TAG_String:
+                $data[$key] = new String($key, $value);
+                break;
+            case NBT::TAG_Enum:
+                $data[$key] = new Enum($key, $value);
+                break;
+            case NBT::TAG_Compound:
+                $data[$key] = new Compound($key, $value);
+                break;
+            case NBT::TAG_IntArray:
+                $data[$key] = new IntArray($key, $value);
+                break;
+        }
+    }
 
 	private static function readValue($data, &$offset, &$type = null){
 		$value = "";

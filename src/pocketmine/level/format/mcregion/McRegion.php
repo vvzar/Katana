@@ -30,12 +30,15 @@ use pocketmine\nbt\tag\Compound;
 use pocketmine\nbt\tag\Int;
 use pocketmine\nbt\tag\Long;
 use pocketmine\nbt\tag\String;
+use pocketmine\network\protocol\FullChunkDataPacket;
 use pocketmine\tile\Spawnable;
 
 use pocketmine\utils\BinaryStream;
 use pocketmine\utils\ChunkException;
 
 class McRegion extends BaseLevelProvider{
+
+    const REQUEST_CHUNK_GET_CHUNK_MODE = true;
 
 	/** @var RegionLoader[] */
 	protected $regions = [];
@@ -113,7 +116,7 @@ class McRegion extends BaseLevelProvider{
 	}
 
 	public function requestChunkTask($x, $z){
-		$chunk = $this->getChunk($x, $z, true);
+		$chunk = $this->getChunkForChunkRequest($x, $z);
 		if(!($chunk instanceof Chunk)){
 			throw new ChunkException("Invalid Chunk sent");
 		}
@@ -148,7 +151,7 @@ class McRegion extends BaseLevelProvider{
 			$extraData->getBuffer() .
 			$tiles;
 
-		$this->getLevel()->chunkRequestCallback($x, $z, $ordered);
+		$this->getLevel()->chunkRequestCallback($x, $z, $ordered, $this->getFullChunkDataPacketOrder());
 
 		return null;
 	}
@@ -315,4 +318,14 @@ class McRegion extends BaseLevelProvider{
 		}
 		$this->level = null;
 	}
+
+    protected function getChunkForChunkRequest($x, $z)
+    {
+        return $this->getChunk($x, $z, static::REQUEST_CHUNK_GET_CHUNK_MODE);
+    }
+
+    protected function getFullChunkDataPacketOrder()
+    {
+        return FullChunkDataPacket::ORDER_COLUMNS;
+    }
 }

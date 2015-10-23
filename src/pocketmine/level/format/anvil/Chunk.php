@@ -209,69 +209,10 @@ class Chunk extends BaseChunk{
 	}
 
 	public function toFastBinary(){
-		$nbt = clone $this->getNBT();
-
-		$nbt->xPos = new Int("xPos", $this->x);
-		$nbt->zPos = new Int("zPos", $this->z);
-
-		$nbt->Sections = new Enum("Sections", []);
-		$nbt->Sections->setTagType(NBT::TAG_Compound);
-		foreach($this->getSections() as $section){
-			if($section instanceof EmptyChunkSection){
-				continue;
-			}
-			$nbt->Sections[$section->getY()] = new Compound(null, [
-				"Y" => new Byte("Y", $section->getY()),
-				"Blocks" => new ByteArray("Blocks", $section->getIdArray()),
-				"Data" => new ByteArray("Data", $section->getDataArray()),
-				"BlockLight" => new ByteArray("BlockLight", $section->getLightArray()),
-				"SkyLight" => new ByteArray("SkyLight", $section->getSkyLightArray())
-			]);
-		}
-
-		$nbt->BiomeColors = new IntArray("BiomeColors", $this->getBiomeColorArray());
-
-		$nbt->HeightMap = new IntArray("HeightMap", $this->getHeightMapArray());
-
-		$entities = [];
-
-		foreach($this->getEntities() as $entity){
-			if(!($entity instanceof Player) and !$entity->closed){
-				$entity->saveNBT();
-				$entities[] = $entity->namedtag;
-			}
-		}
-
-		$nbt->Entities = new Enum("Entities", $entities);
-		$nbt->Entities->setTagType(NBT::TAG_Compound);
-
-
-		$tiles = [];
-		foreach($this->getTiles() as $tile){
-			$tile->saveNBT();
-			$tiles[] = $tile->namedtag;
-		}
-
-		$nbt->TileEntities = new Enum("TileEntities", $tiles);
-		$nbt->TileEntities->setTagType(NBT::TAG_Compound);
-
-		$extraData = new BinaryStream();
-		$extraData->putInt(count($this->getBlockExtraDataArray()));
-		foreach($this->getBlockExtraDataArray() as $key => $value){
-			$extraData->putInt($key);
-			$extraData->putShort($value);
-		}
-
-		$nbt->ExtraData = new ByteArray("ExtraData", $extraData->getBuffer());
-
-		$writer = new NBT(NBT::BIG_ENDIAN);
-		$nbt->setName("Level");
-		$writer->setData(new Compound("", ["Level" => $nbt]));
-
-		return $writer->write();
+		return $this->toBinary(false);
 	}
 
-	public function toBinary(){
+	public function toBinary($compressed = true){
 		$nbt = clone $this->getNBT();
 
 		$nbt->xPos = new Int("xPos", $this->x);
@@ -296,42 +237,12 @@ class Chunk extends BaseChunk{
 
 		$nbt->HeightMap = new IntArray("HeightMap", $this->getHeightMapArray());
 
-		$entities = [];
+        $writer = $this->prepareChunkBinaryWriter($nbt);
 
-		foreach($this->getEntities() as $entity){
-			if(!($entity instanceof Player) and !$entity->closed){
-				$entity->saveNBT();
-				$entities[] = $entity->namedtag;
-			}
-		}
-
-		$nbt->Entities = new Enum("Entities", $entities);
-		$nbt->Entities->setTagType(NBT::TAG_Compound);
-
-
-		$tiles = [];
-		foreach($this->getTiles() as $tile){
-			$tile->saveNBT();
-			$tiles[] = $tile->namedtag;
-		}
-
-		$nbt->TileEntities = new Enum("TileEntities", $tiles);
-		$nbt->TileEntities->setTagType(NBT::TAG_Compound);
-
-		$extraData = new BinaryStream();
-		$extraData->putInt(count($this->getBlockExtraDataArray()));
-		foreach($this->getBlockExtraDataArray() as $key => $value){
-			$extraData->putInt($key);
-			$extraData->putShort($value);
-		}
-
-		$nbt->ExtraData = new ByteArray("ExtraData", $extraData->getBuffer());
-
-		$writer = new NBT(NBT::BIG_ENDIAN);
-		$nbt->setName("Level");
-		$writer->setData(new Compound("", ["Level" => $nbt]));
-
-		return $writer->writeCompressed(ZLIB_ENCODING_DEFLATE, RegionLoader::$COMPRESSION_LEVEL);
+        if($compressed === false)
+            return $writer->write();
+        else
+            return $writer->writeCompressed(ZLIB_ENCODING_DEFLATE, RegionLoader::$COMPRESSION_LEVEL);
 	}
 
 	/**

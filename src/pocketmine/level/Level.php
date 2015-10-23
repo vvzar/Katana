@@ -345,7 +345,7 @@ class Level implements ChunkManager, Metadatable{
 		$this->tickRate = 1;
 
 		// Initialize chunk cache folder
-		if($this->server->getKatana()->getProperty("cache.save-to-disk", true) && !file_exists("chunk_cache/" . $this->getName() . "/")){
+		if($this->server->getKatana()->getProperty("caching.save-to-disk", true) && !file_exists("chunk_cache/" . $this->getName() . "/")){
 			mkdir("chunk_cache/" . $this->getName() . "/", 0777);
 		}
 	}     
@@ -954,36 +954,31 @@ class Level implements ChunkManager, Metadatable{
 	 * @param Vector3 $pos
 	 */
 	public function updateAround(Vector3 $pos){
-		$this->server->getPluginManager()->callEvent($ev = new BlockUpdateEvent($this->getBlock($this->temporalVector->setComponents($pos->x, $pos->y - 1, $pos->z))));
-		if(!$ev->isCancelled()){
-			$ev->getBlock()->onUpdate(self::BLOCK_UPDATE_NORMAL);
-		}
-
-		$this->server->getPluginManager()->callEvent($ev = new BlockUpdateEvent($this->getBlock($this->temporalVector->setComponents($pos->x, $pos->y + 1, $pos->z))));
-		if(!$ev->isCancelled()){
-			$ev->getBlock()->onUpdate(self::BLOCK_UPDATE_NORMAL);
-		}
-
-		$this->server->getPluginManager()->callEvent($ev = new BlockUpdateEvent($this->getBlock($this->temporalVector->setComponents($pos->x - 1, $pos->y, $pos->z))));
-		if(!$ev->isCancelled()){
-			$ev->getBlock()->onUpdate(self::BLOCK_UPDATE_NORMAL);
-		}
-
-		$this->server->getPluginManager()->callEvent($ev = new BlockUpdateEvent($this->getBlock($this->temporalVector->setComponents($pos->x + 1, $pos->y, $pos->z))));
-		if(!$ev->isCancelled()){
-			$ev->getBlock()->onUpdate(self::BLOCK_UPDATE_NORMAL);
-		}
-
-		$this->server->getPluginManager()->callEvent($ev = new BlockUpdateEvent($this->getBlock($this->temporalVector->setComponents($pos->x, $pos->y, $pos->z - 1))));
-		if(!$ev->isCancelled()){
-			$ev->getBlock()->onUpdate(self::BLOCK_UPDATE_NORMAL);
-		}
-
-		$this->server->getPluginManager()->callEvent($ev = new BlockUpdateEvent($this->getBlock($this->temporalVector->setComponents($pos->x, $pos->y, $pos->z + 1))));
-		if(!$ev->isCancelled()){
-			$ev->getBlock()->onUpdate(self::BLOCK_UPDATE_NORMAL);
-		}
+		$this->handleBlockUpdateEvent($pos->x, $pos->y - 1, $pos->z);
+		$this->handleBlockUpdateEvent($pos->x, $pos->y + 1, $pos->z);
+		$this->handleBlockUpdateEvent($pos->x - 1, $pos->y, $pos->z);
+		$this->handleBlockUpdateEvent($pos->x + 1, $pos->y, $pos->z);
+		$this->handleBlockUpdateEvent($pos->x, $pos->y, $pos->z - 1);
+		$this->handleBlockUpdateEvent($pos->x, $pos->y, $pos->z + 1);
 	}
+
+
+    /**
+     *
+     * Call block update by position
+     *
+     * @param $blockX
+     * @param $blockY
+     * @param $blockZ
+     * @param int $onUpdateType
+     */
+    private function handleBlockUpdateEvent($blockX, $blockY, $blockZ, $onUpdateType = self::BLOCK_UPDATE_NORMAL)
+    {
+        $ev = new BlockUpdateEvent($this->getBlock($this->temporalVector->setComponents($blockX, $blockY, $blockZ)));
+        $this->server->getPluginManager()->callEvent($ev);
+        if(!$ev->isCancelled())
+            $ev->getBlock()->onUpdate($onUpdateType);
+    }
 
 	/**
 	 * @param Vector3 $pos

@@ -65,7 +65,6 @@ abstract class Tile extends Position{
 	public $attach;
 	public $metadata;
 	public $closed = false;
-	public $namedtag;
 	protected $lastUpdate;
 	protected $server;
 	protected $timings;
