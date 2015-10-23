@@ -2394,10 +2394,7 @@ class Server{
 		}
 
 		if(($this->tickCounter % 100) === 0){
-                        foreach($this->levels as $level){
-				$level->clearCache();
-			}
-                        
+                    
 			if($this->getTicksPerSecondAverage() < 12){
 				$this->logger->warning($this->getLanguage()->translateString("pocketmine.server.tickOverload"));
 			}
