@@ -901,18 +901,14 @@ class Server{
 		if(isset($this->identifiers[$hash = spl_object_hash($player)])){
 			$identifier = $this->identifiers[$hash];
 			unset($this->players[$identifier]);
-			unset($this->identifiers[$hash]);
-                        $player->clearObject();
-                        unset($player);                        
+			unset($this->identifiers[$hash]);                                          
 			return;
 		}
 
 		foreach($this->players as $identifier => $p){
 			if($player === $p){
 				unset($this->players[$identifier]);
-				unset($this->identifiers[spl_object_hash($player)]);
-                                $player->clearObject();
-                                unset($player);                                
+				unset($this->identifiers[spl_object_hash($player)]);                                                               
 				break;
 			}
 		}
