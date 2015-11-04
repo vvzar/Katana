@@ -94,22 +94,21 @@ class Katana {
 	}
 
 	public function initModules() {
+		//Load console first, as other modules use it.
+		$this->console = new Console($this);
+		$this->console->init();
+		$this->modules[] = $this->console;
+
 		if($this->getProperty("redirect.enable")) {
 			$this->redirect = new RedirectEngine($this);
 			$this->redirect->init();
 			$this->modules[] = $this->redirect;
 		}
-
-        //TODO: may be it would be better to check if module enabled for each module???
-		$this->console = new Console($this);
-		$this->console->init();
-		$this->modules[] = $this->console;
-
-        if($this->getProperty('caching.enable')){
-            $this->cache = new CacheEngine($this);
-            $this->cache->init();
-            $this->modules[] = $this->cache;
-        }
+    if($this->getProperty('caching.enable')){
+        $this->cache = new CacheEngine($this);
+        $this->cache->init();
+        $this->modules[] = $this->cache;
+    }
 	}
 
 	public function tickModules() {
