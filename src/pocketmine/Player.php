@@ -2205,8 +2205,10 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 					$this->server->getPluginManager()->callEvent($ev);
 
 					if($ev->isCancelled()){
+						if ($this->inventory !== null) {
 						$this->inventory->sendHeldItem($this);
 						break;
+						}
 					}
 
 					if($item->getId() === Item::SNOWBALL){
