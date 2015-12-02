@@ -2543,6 +2543,9 @@ class Level implements ChunkManager, Metadatable{
 	 * @return bool
 	 */
 	public function isSpawnChunk($X, $Z){
+		if ($this->provider == null) {
+			return false;
+		}
 		$spawnX = $this->provider->getSpawn()->getX() >> 4;
 		$spawnZ = $this->provider->getSpawn()->getZ() >> 4;
 
@@ -2638,7 +2641,7 @@ class Level implements ChunkManager, Metadatable{
 	 * @return string
 	 */
 	public function getName(){
-		return $this->provider->getName();
+		if ($this->provider) return $this->provider->getName();
 	}
 
 	/**
