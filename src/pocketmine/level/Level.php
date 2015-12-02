@@ -151,8 +151,6 @@ class Level implements ChunkManager, Metadatable{
 	/** @var Tile[] */
 	public $updateTiles = [];
 
-	private $blockCache = [];
-
 	private $sendTimeTicker = 0;
 
 	/** @var Server */
@@ -174,7 +172,6 @@ class Level implements ChunkManager, Metadatable{
 	private $playerLoaders = [];
 
 	private $chunkPackets = [];
-	public $chunkCache = [];
 
 	/** @var float[] */
 	private $unloadQueue;
@@ -351,8 +348,8 @@ class Level implements ChunkManager, Metadatable{
 		if($this->server->getKatana()->getProperty("caching.save-to-disk", true) && !file_exists("chunk_cache/" . $this->getName() . "/")){
 			mkdir("chunk_cache/" . $this->getName() . "/", 0777);
 		}
-	}
-
+	}     
+       
 	public function getTickRate(){
 		return $this->tickRate;
 	}
@@ -1200,10 +1197,7 @@ class Level implements ChunkManager, Metadatable{
 	 * @return Block
 	 */
 	public function getBlock(Vector3 $pos, $cached = true){
-		$index = Level::blockHash($pos->x, $pos->y, $pos->z);
-		if($cached and isset($this->blockCache[$index])){
-			return $this->blockCache[$index];
-		}elseif($pos->y >= 0 and $pos->y < 128 and isset($this->chunks[$chunkIndex = Level::chunkHash($pos->x >> 4, $pos->z >> 4)])){
+		if($pos->y >= 0 and $pos->y < 128 and isset($this->chunks[$chunkIndex = Level::chunkHash($pos->x >> 4, $pos->z >> 4)])){
 			$fullState = $this->chunks[$chunkIndex]->getFullBlock($pos->x & 0x0f, $pos->y & 0x7f, $pos->z & 0x0f);
 		}else{
 			$fullState = 0;
@@ -1216,7 +1210,7 @@ class Level implements ChunkManager, Metadatable{
 		$block->z = $pos->z;
 		$block->level = $this;
 
-		return $this->blockCache[$index] = $block;
+		return $block;
 	}
 
 	public function updateAllLight(Vector3 $pos){
@@ -1344,13 +1338,11 @@ class Level implements ChunkManager, Metadatable{
 			}
 
 			$block->position($pos);
-			unset($this->blockCache[Level::blockHash($pos->x, $pos->y, $pos->z)]);
 
 			$index = Level::chunkHash($pos->x >> 4, $pos->z >> 4);
 
 			if($direct === true){
 				$this->sendBlocks($this->getChunkPlayers($pos->x >> 4, $pos->z >> 4), [$block], UpdateBlockPacket::FLAG_ALL_PRIORITY);
-				unset($this->chunkCache[$index]);
 			}else{
 				if(!isset($this->changedBlocks[$index])){
 					$this->changedBlocks[$index] = [];
@@ -1903,8 +1895,7 @@ class Level implements ChunkManager, Metadatable{
 	 * @param int $z
 	 * @param int $id 0-255
 	 */
-	public function setBlockIdAt($x, $y, $z, $id){
-		unset($this->blockCache[Level::blockHash($x, $y, $z)]);
+	public function setBlockIdAt($x, $y, $z, $id){		
 		$this->getChunk($x >> 4, $z >> 4, true)->setBlockId($x & 0x0f, $y & 0x7f, $z & 0x0f, $id & 0xff);
 
 		if(!isset($this->changedBlocks[$index = Level::chunkHash($x >> 4, $z >> 4)])){
@@ -1965,8 +1956,7 @@ class Level implements ChunkManager, Metadatable{
 	 * @param int $z
 	 * @param int $data 0-15
 	 */
-	public function setBlockDataAt($x, $y, $z, $data){
-		unset($this->blockCache[Level::blockHash($x, $y, $z)]);
+	public function setBlockDataAt($x, $y, $z, $data){		
 		$this->getChunk($x >> 4, $z >> 4, true)->setBlockData($x & 0x0f, $y & 0x7f, $z & 0x0f, $data & 0x0f);
 
 		if(!isset($this->changedBlocks[$index = Level::chunkHash($x >> 4, $z >> 4)])){
@@ -2235,13 +2225,12 @@ class Level implements ChunkManager, Metadatable{
 	}
 
 	public function loadChunkFromDisk($x, $z) {
-		// Get chunk from the disk if it's already saved there, loads payload into ram
-		if(isset($this->chunkCache[$x.":".$z])) return true;
-		if(!$this->server->getKatana()->getProperty("caching.save-to-disk", true)) return false;
+		if(!$this->server->getKatana()->getProperty("caching.save-to-disk", true)){
+                    return false;
+                }
 
 		if(file_exists("chunk_cache/" . $this->getName() . "/" . $x . "_" . $z . ".dat")) {
-			$this->chunkCache[$x.":".$z] = file_get_contents("chunk_cache/" . $this->getName() . "/" . $x . "_" . $z . ".dat");
-			return true;
+			return file_get_contents("chunk_cache/" . $this->getName() . "/" . $x . "_" . $z . ".dat");
 		}
 		return false;
 	}
@@ -2260,10 +2249,10 @@ class Level implements ChunkManager, Metadatable{
 				Level::getXZ($index, $x, $z);
 				$this->chunkSendTasks[$index] = true;
 				// Gets chunks from disk or cache if it can
-				if(isset($this->chunkCache[$x.":".$z]) or $this->loadChunkFromDisk($x, $z)) {
+				if($chunkCache = $this->loadChunkFromDisk($x, $z)) {
 					foreach($players as $player) {
 						// Found chunk? Call special function to send just the payload
-						$player->sendBatchedChunk($x, $z, $this->chunkCache[$x.":".$z]);
+						$player->sendBatchedChunk($x, $z, $chunkCache);
 					}
 					unset($this->chunkSendQueue[$index]);
 					unset($this->chunkSendTasks[$index]);
@@ -2286,8 +2275,7 @@ class Level implements ChunkManager, Metadatable{
 		// When the payload of the chunk has been calculated it, save it if possible to save future CPU cycles
 		/** @var Player $player */
 		if(file_exists("chunk_cache/" . $this->getName() . "/" . $x . "_" . $z . ".dat")) {
-			$this->loadChunkFromDisk($x, $z);
-			return true;
+			return $this->loadChunkFromDisk($x, $z);
 		}
 
 		$pk = new FullChunkDataPacket();
@@ -2300,14 +2288,13 @@ class Level implements ChunkManager, Metadatable{
 		// all chunks are zlib_encoded, level is arbitrary but 6 is a good match between device CPU power needed
 		// and bandwidth
 		$data = zlib_encode(Binary::writeInt(strlen($pk->buffer)) . $pk->buffer, ZLIB_ENCODING_DEFLATE, 6);
-		$this->chunkCache[$x.":".$z] = $data;
 
 		if(!$this->server->getKatana()->getProperty("caching.save-to-disk", true)) {
-			return true;
+			return $data;
 		}
 
 		file_put_contents("chunk_cache/" . $this->getName() . "/" . $x . "_" . $z . ".dat", $data);
-		return true;
+		return $data;
 	}
 
 	public function chunkRequestCallback($x, $z, $payload, $ordering = FullChunkDataPacket::ORDER_COLUMNS){
@@ -2315,21 +2302,19 @@ class Level implements ChunkManager, Metadatable{
 
 		$index = Level::chunkHash($x, $z);
 
-		$this->saveChunkToDisk($x, $z, $payload, $ordering);
+		$chankCahse = $this->saveChunkToDisk($x, $z, $payload, $ordering);
 
 		if(isset($this->chunkSendTasks[$index])){
 			foreach($this->chunkSendQueue[$index] as $player){
 				/** @var Player $player */
 				if($player->isConnected() and isset($player->usedChunks[$index])){
-					$player->sendBatchedChunk($x, $z, $this->chunkCache[$x.":".$z]);
+					$player->sendBatchedChunk($x, $z, $chankCahse);
 				}
 			}
 			unset($this->chunkSendQueue[$index]);
 			unset($this->chunkSendTasks[$index]);
 		}
-		$this->timings->syncChunkSendTimer->stopTiming();
-
-		if(!$this->server->getKatana()->getProperty("caching.save-to-ram", true)) unset($this->chunkCache[$x.":".$z]);
+		$this->timings->syncChunkSendTimer->stopTiming();		
 	}
 
 	/**

@@ -547,7 +547,8 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 
 		$this->creationTime = microtime(true);
 	}
-
+        
+ 
 	/**
 	 * @param string $achievementId
 	 */
@@ -3127,8 +3128,8 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 	 * @param bool $notify
 	 */
 	public final function close($message = "", $reason = "generic reason", $notify = true){
-
-		if($this->connected and !$this->closed){
+                
+		if(!$this->closed){
 			if($notify and strlen((string) $reason) > 0){
 				$pk = new DisconnectPacket;
 				$pk->message = $reason;

@@ -901,14 +901,14 @@ class Server{
 		if(isset($this->identifiers[$hash = spl_object_hash($player)])){
 			$identifier = $this->identifiers[$hash];
 			unset($this->players[$identifier]);
-			unset($this->identifiers[$hash]);
+			unset($this->identifiers[$hash]);                                          
 			return;
 		}
 
 		foreach($this->players as $identifier => $p){
 			if($player === $p){
 				unset($this->players[$identifier]);
-				unset($this->identifiers[spl_object_hash($player)]);
+				unset($this->identifiers[spl_object_hash($player)]);                                                               
 				break;
 			}
 		}
@@ -1557,7 +1557,6 @@ class Server{
 
 		$this->enablePlugins(PluginLoadOrder::STARTUP);
 
-		LevelProviderManager::addProvider($this, Anvil::class);
 		LevelProviderManager::addProvider($this, McRegion::class);
 
 		foreach((array) $this->getProperty("worlds", []) as $name => $worldSetting){
@@ -2391,6 +2390,7 @@ class Server{
 		}
 
 		if(($this->tickCounter % 100) === 0){
+                    
 			if($this->getTicksPerSecondAverage() < 12){
 				$this->logger->warning($this->getLanguage()->translateString("pocketmine.server.tickOverload"));
 			}
